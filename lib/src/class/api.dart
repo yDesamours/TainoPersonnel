@@ -1,10 +1,12 @@
+import 'package:tainopersonnel/src/class/tenant.dart';
 import 'package:tainopersonnel/src/class/user.dart';
-import 'dart:convert';
+import 'dart:convert' as conv;
 import 'package:http/http.dart' as http;
 
 class API {
-  static Future<User> login(String username, String password) async {
+  static Future<(User, Tenant)> login(String username, String password) async {
     var user = User(username: username, password: password);
+    var tenant = Tenant();
     var jsonData = {
       "username": user.username,
       "password": user.password,
@@ -12,10 +14,10 @@ class API {
 
     final response = await http.post(
       Uri.parse(_APIEndpoint._loginEndpoint),
-      body: json.encode(jsonData),
+      body: conv.json.encode(jsonData),
     );
 
-    var body = json.decode(response.body);
+    var body = conv.json.decode(response.body);
     if (body['error'] != "") {
       var error = _APIError.errors[body['error']];
       if (error == null) {
@@ -29,18 +31,35 @@ class API {
     user.firstname = result['user']['firstname'];
     user.lastname = result?['user']['lastname'];
     user.id = result?['user']['id'];
+    user.token = result?['token'];
     user.role = result?['user']['role']['name'];
     user.roleId = result?['user']['role']['id'];
-    user.tenant = result?['tenant']['name'];
-    user.tenantId = result?['tenant']['id'];
+    tenant.name = result?['tenant']['name'];
+    user.id = result?['tenant']['id'];
 
-    return user;
+    tenant.logo = await getTenantLogo(user.token);
+
+    return (user, tenant);
+  }
+
+  static Future<String> getTenantLogo(String token) async {
+    String uri = '${_APIEndpoint._getLogoEndpoint}/$token';
+
+    final response = await http.get(Uri.parse(uri));
+    Map<String, dynamic> body = conv.json.decode(response.body);
+
+    if (body['error'] != "") {
+      return '';
+    }
+
+    return body['result']?["value"];
   }
 }
 
 class _APIEndpoint {
   static const String _apiEndpoint = 'http://192.168.10.137:8082';
   static const String _loginEndpoint = '$_apiEndpoint/login';
+  static const String _getLogoEndpoint = '$_apiEndpoint/logo';
 }
 
 class _APIError {

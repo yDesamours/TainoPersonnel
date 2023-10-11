@@ -45,10 +45,11 @@ class _LoginFormState extends State<LoginForm> {
 
     loginFunction = () async {
       try {
-        var user =
+        var (user, tenant) =
             await API.login(usernameController.text, passwordController.text);
 
         state.setUser(user);
+        state.setTenant(tenant);
       } catch (e) {
         if (!mounted) return;
 
