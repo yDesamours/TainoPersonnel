@@ -40,13 +40,17 @@ class MyDrawer extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      tenant.name,
-                      style: textTheme.bodyLarge,
+                    Expanded(
+                      child: Text(
+                        tenant.name,
+                        style: textTheme.bodyLarge,
+                      ),
                     ),
-                    Text(
-                      "${user.firstname} ${user.lastname}",
-                      style: textTheme.bodyMedium,
+                    Expanded(
+                      child: Text(
+                        "${user.firstname} ${user.lastname}",
+                        style: textTheme.bodyMedium,
+                      ),
                     ),
                   ],
                 ),

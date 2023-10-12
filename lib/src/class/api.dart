@@ -18,13 +18,7 @@ class API {
     );
 
     var body = conv.json.decode(response.body);
-    if (body['error'] != "") {
-      var error = _APIError.errors[body['error']];
-      if (error == null) {
-        throw 'Something went wrong';
-      }
-      throw error;
-    }
+    throwPotentialError(body);
 
     var result = body['result'];
 
@@ -33,13 +27,23 @@ class API {
     user.id = result?['user']['id'];
     user.token = result?['token'];
     user.role = result?['user']['role']['name'];
-    user.roleId = result?['user']['role']['id'];
+    user.idRole = result?['user']['role']['id'];
     tenant.name = result?['tenant']['name'];
     user.id = result?['tenant']['id'];
 
-    tenant.logo = await getTenantLogo(user.token);
+    // tenant.logo = await getTenantLogo(user.token);
 
     return (user, tenant);
+  }
+
+  static void throwPotentialError(Map<String, dynamic> json) {
+    if (json['error'] != "") {
+      var error = _APIError.errors[json['error']];
+      if (error == null) {
+        throw 'Something went wrong';
+      }
+      throw error;
+    }
   }
 
   static Future<String> getTenantLogo(String token) async {
@@ -54,12 +58,18 @@ class API {
 
     return body['result']?["value"];
   }
+
+  static void logout(String token) {
+    String uri = '${_APIEndpoint._getLogoutEndpoint}/$token';
+    http.get(Uri.parse(uri));
+  }
 }
 
 class _APIEndpoint {
   static const String _apiEndpoint = 'http://192.168.10.137:8082';
   static const String _loginEndpoint = '$_apiEndpoint/login';
   static const String _getLogoEndpoint = '$_apiEndpoint/logo';
+  static const String _getLogoutEndpoint = '$_apiEndpoint/logout';
 }
 
 class _APIError {

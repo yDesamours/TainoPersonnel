@@ -4,14 +4,10 @@ import 'package:tainopersonnel/src/class/tenant.dart';
 import 'package:tainopersonnel/src/class/user.dart';
 
 class AppState extends ChangeNotifier {
-  User? user = User(
-      firstname: "Theo",
-      lastname: "Lanhi",
-      id: 2,
-      role: "comptable",
-      roleId: 4);
+  AppState(this.user);
 
-  Tenant? tenant = Tenant(name: 'Tainosystems');
+  User? user;
+  Tenant? tenant;
   String token = '';
 
   void setUser(User user) {
@@ -21,6 +17,13 @@ class AppState extends ChangeNotifier {
 
   void setTenant(Tenant tenant) {
     this.tenant = tenant;
+    notifyListeners();
+  }
+
+  void logout() {
+    user = null;
+    tenant = null;
+    token = '';
     notifyListeners();
   }
 }

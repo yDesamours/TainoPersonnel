@@ -1,10 +1,12 @@
+// ignore_for_file: must_be_immutable
+
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tainopersonnel/src/class/api.dart';
 import 'package:tainopersonnel/src/class/state.dart';
-import 'package:tainopersonnel/src/class/tenant.dart';
 import 'package:tainopersonnel/src/class/user.dart';
 import 'package:tainopersonnel/src/widget/mytile.dart';
 
@@ -20,12 +22,13 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    User user = context.watch<AppState>().user!;
+    AppState state = context.watch<AppState>();
+    User user = state.user!;
     return AppBar(
       centerTitle: true,
       backgroundColor: theme.primaryColor,
       title: const Image(
-        image: AssetImage("tainopersonnel.png"),
+        image: AssetImage("assets/tainopersonnel.png"),
         height: 40,
       ),
       actions: [
@@ -33,13 +36,16 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
           onSelected: (value) async {
             switch (value) {
               case AppBarActions.logout:
-                await confirmationRequest(context);
+                if (await confirmationRequest(context)) {
+                  API.logout(user.token);
+                  state.logout();
+                }
               case AppBarActions.profile:
             }
           },
           child: Logo(content: '${user.firstname} ${user.lastname}'),
           itemBuilder: (context) => [
-            PopupMenuItem(
+            PopupMenuItem<AppBarActions>(
               value: AppBarActions.profile,
               child: MyTile(
                 title: "Profile",
@@ -50,7 +56,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
                 icon: Icons.person,
               ),
             ),
-            PopupMenuItem(
+            PopupMenuItem<AppBarActions>(
               value: AppBarActions.logout,
               child: MyTile(
                 title: "Log Out",
@@ -85,8 +91,13 @@ class Logo extends StatelessWidget {
           color: Colors.orange,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Text(content[0]),
+          padding: const EdgeInsets.all(8),
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: Text(
+              content[0],
+            ),
+          ),
         ),
       );
     } else {
@@ -97,7 +108,7 @@ class Logo extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(8),
       child: widget,
     );
   }

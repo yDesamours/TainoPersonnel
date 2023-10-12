@@ -18,14 +18,16 @@ class InputField extends StatelessWidget {
   final bool required;
   String? Function(String?)? validator;
   bool obscureText;
+  TextStyle style = const TextStyle(
+    color: Color.fromARGB(49, 1, 1, 26),
+    fontSize: 16,
+  );
 
   @override
   Widget build(BuildContext context) {
     InputDecoration decoration = InputDecoration(
       labelText: labelText,
-      labelStyle: const TextStyle(
-        color: Color.fromARGB(49, 1, 1, 26),
-      ),
+      labelStyle: style,
       prefixIcon: Icon(
         icon,
         color: Colors.blue,
@@ -41,10 +43,10 @@ class InputField extends StatelessWidget {
     );
 
     return TextFormField(
-      controller: usernameController,
-      obscureText: obscureText,
-      validator: validator,
-      decoration: decoration,
-    );
+        controller: usernameController,
+        obscureText: obscureText,
+        validator: validator,
+        decoration: decoration,
+        style: style);
   }
 }

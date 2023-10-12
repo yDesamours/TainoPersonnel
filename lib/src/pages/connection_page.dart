@@ -12,7 +12,7 @@ class ConnectionPage extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("imageSuits.webp"),
+            image: AssetImage("assets/imageSuits.webp"),
             fit: BoxFit.cover,
           ),
         ),
