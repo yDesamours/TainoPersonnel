@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:tainopersonnel/src/class/state.dart';
 import 'package:tainopersonnel/src/widget/dialogbox.dart';
 import 'package:tainopersonnel/src/widget/inputfield.dart';
-import 'package:tainopersonnel/src/class/api.dart';
+import 'package:tainopersonnel/src/operation/operation.dart' as operation;
 
 // ignore: must_be_immutable
 class LoginForm extends StatefulWidget {
@@ -17,25 +17,37 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   bool canPress = false;
 
-  _LoginFormState() {
-    void listener() {
-      if (usernameController.text == "" || passwordController.text == "") {
-        setState(() {
-          canPress = false;
-        });
-        return;
-      }
-      setState(() {
-        canPress = true;
-      });
-    }
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-    usernameController.addListener(listener);
-    passwordController.addListener(listener);
+  void _listener() {
+    if (_usernameController.text == "" || _passwordController.text == "") {
+      setState(() {
+        canPress = false;
+      });
+      return;
+    }
+    setState(() {
+      canPress = true;
+    });
   }
 
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+
+    _usernameController.addListener(_listener);
+    _passwordController.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    _usernameController.removeListener(_listener);
+    _passwordController.removeListener(_listener);
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +57,8 @@ class _LoginFormState extends State<LoginForm> {
 
     loginFunction = () async {
       try {
-        var (user, tenant) =
-            await API.login(usernameController.text, passwordController.text);
-
-        state.setUser(user);
-        state.setTenant(tenant);
+        operation.login(
+            _usernameController.text, _passwordController.text, state);
       } catch (e) {
         if (!mounted) return;
 
@@ -60,9 +69,9 @@ class _LoginFormState extends State<LoginForm> {
     };
 
     return Padding(
-      padding: const EdgeInsets.all(40.0),
+      padding: const EdgeInsets.all(10.0),
       child: Container(
-        padding: const EdgeInsets.all(40),
+        padding: const EdgeInsets.all(10),
         color: const Color.fromARGB(128, 128, 128, 128),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -70,7 +79,7 @@ class _LoginFormState extends State<LoginForm> {
             Column(
               children: [
                 InputField(
-                  usernameController: usernameController,
+                  controller: _usernameController,
                   labelText: "username",
                   icon: Icons.person,
                 ),
@@ -78,7 +87,7 @@ class _LoginFormState extends State<LoginForm> {
                   height: 10,
                 ),
                 InputField(
-                  usernameController: passwordController,
+                  controller: _passwordController,
                   labelText: "password",
                   icon: Icons.key,
                   obscureText: true,

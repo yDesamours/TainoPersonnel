@@ -1,3 +1,4 @@
+import 'package:tainopersonnel/src/class/report.dart';
 import 'package:tainopersonnel/src/class/tenant.dart';
 import 'package:tainopersonnel/src/class/user.dart';
 import 'dart:convert' as conv;
@@ -28,8 +29,10 @@ class API {
     user.token = result?['token'];
     user.role = result?['user']['role']['name'];
     user.idRole = result?['user']['role']['id'];
-    tenant.name = result?['tenant']['name'];
     user.id = result?['tenant']['id'];
+
+    tenant.name = result?['tenant']['name'];
+    tenant.id = result?['tenant']['id'];
 
     // tenant.logo = await getTenantLogo(user.token);
 
@@ -63,13 +66,29 @@ class API {
     String uri = '${_APIEndpoint._getLogoutEndpoint}/$token';
     http.get(Uri.parse(uri));
   }
+
+  static void sendDailyReport(Report report, String token) async {
+    String uri = '${_APIEndpoint._sendDailyReport}/$token';
+    final response = await http.post(
+      Uri.parse(uri),
+      body: conv.json.encode(report.toJSON()),
+    );
+
+    var body = conv.json.decode(response.body);
+
+    throwPotentialError(body);
+
+    report.id = body['result'];
+  }
 }
 
 class _APIEndpoint {
-  static const String _apiEndpoint = 'http://192.168.10.137:8082';
+  static const String _apiEndpoint =
+      'https://app.sysgestock.com/gestionpersonnelapi';
   static const String _loginEndpoint = '$_apiEndpoint/login';
   static const String _getLogoEndpoint = '$_apiEndpoint/logo';
   static const String _getLogoutEndpoint = '$_apiEndpoint/logout';
+  static const String _sendDailyReport = '$_apiEndpoint/dailyreport';
 }
 
 class _APIError {

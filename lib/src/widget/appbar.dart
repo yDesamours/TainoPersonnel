@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:tainopersonnel/src/class/api.dart';
 import 'package:tainopersonnel/src/class/state.dart';
 import 'package:tainopersonnel/src/class/user.dart';
+import 'package:tainopersonnel/src/operation/operation.dart' as operation;
 import 'package:tainopersonnel/src/widget/mytile.dart';
 
 import '../utils/utils.dart';
@@ -33,12 +34,13 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         PopupMenuButton<AppBarActions>(
+          position: PopupMenuPosition.under,
           onSelected: (value) async {
             switch (value) {
               case AppBarActions.logout:
                 if (await confirmationRequest(context)) {
                   API.logout(user.token);
-                  state.logout();
+                  operation.logout(user.token, state);
                 }
               case AppBarActions.profile:
             }
@@ -78,8 +80,10 @@ enum AppBarActions { profile, logout }
 
 class Logo extends StatelessWidget {
   String content;
+  String alt;
   bool image;
-  Logo({super.key, required this.content, this.image = false});
+  Logo({super.key, content, this.image = false, this.alt = 'T'})
+      : content = content ?? '';
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +99,7 @@ class Logo extends StatelessWidget {
           child: FittedBox(
             fit: BoxFit.contain,
             child: Text(
-              content[0],
+              alt[0],
             ),
           ),
         ),

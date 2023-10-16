@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:tainopersonnel/src/pages/reportpage.dart";
 
 import "package:tainopersonnel/src/widget/appbar.dart";
 import "package:tainopersonnel/src/widget/mydrawer.dart";
@@ -15,7 +16,7 @@ class _AppPage extends State<AppPage> {
 
   List<Widget> pages = const [
     Placeholder(color: Colors.white24),
-    Placeholder(color: Colors.indigo),
+    ReportPage(),
     Placeholder(color: Colors.purple),
     Placeholder(color: Colors.deepPurpleAccent)
   ];

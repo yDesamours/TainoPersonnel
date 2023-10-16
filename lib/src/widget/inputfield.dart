@@ -4,15 +4,17 @@ import 'package:flutter/material.dart';
 class InputField extends StatelessWidget {
   InputField({
     super.key,
-    required this.usernameController,
+    required this.controller,
     required this.labelText,
     this.obscureText = false,
     this.required = false,
     this.validator,
     this.icon,
+    this.content = '',
   });
 
-  final TextEditingController usernameController;
+  final TextEditingController controller;
+  String content = '';
   final String labelText;
   final IconData? icon;
   final bool required;
@@ -43,7 +45,7 @@ class InputField extends StatelessWidget {
     );
 
     return TextFormField(
-        controller: usernameController,
+        controller: controller,
         obscureText: obscureText,
         validator: validator,
         decoration: decoration,

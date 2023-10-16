@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tainopersonnel/src/class/state.dart';
 import 'package:tainopersonnel/src/class/tenant.dart';
+import 'package:tainopersonnel/src/widget/appbar.dart';
 import 'package:tainopersonnel/src/widget/mytile.dart';
 
 import '../class/user.dart';
@@ -32,24 +33,37 @@ class MyDrawer extends StatelessWidget {
       child: Column(
         children: [
           Expanded(
+            flex: 2,
             child: ListView(children: [
               DrawerHeader(
                 decoration: BoxDecoration(
-                  color: theme.primaryColor,
-                ),
+                    color: Color.alphaBlend(
+                  theme.primaryColor,
+                  Colors.deepPurpleAccent,
+                )),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        tenant.name,
-                        style: textTheme.bodyLarge,
-                      ),
+                    Row(
+                      children: [
+                        Logo(
+                          content: tenant.logo,
+                          alt: tenant.name,
+                        ),
+                        Expanded(
+                          child: Text(
+                            tenant.name,
+                            style: textTheme.bodyLarge,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                     Expanded(
                       child: Text(
                         "${user.firstname} ${user.lastname}",
                         style: textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

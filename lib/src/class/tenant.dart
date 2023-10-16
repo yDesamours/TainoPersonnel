@@ -1,6 +1,6 @@
 class Tenant {
-  String name,
-      phonenumber,
+  String name;
+  String? phonenumber,
       address,
       type,
       email,
@@ -9,8 +9,8 @@ class Tenant {
       zipcode,
       state,
       region,
-      country;
-  String logo;
+      country,
+      logo;
   int id;
 
   Tenant(
@@ -18,7 +18,7 @@ class Tenant {
       this.city = '',
       this.country = '',
       this.email = '',
-      this.logo = '',
+      this.logo,
       this.name = '',
       this.phonenumber = '',
       this.region = '',
@@ -27,4 +27,18 @@ class Tenant {
       this.website = '',
       this.zipcode = '',
       this.id = 0});
+
+  Tenant.fromJSON(Map<String, dynamic> json)
+      : this(
+          id: json['id'],
+          name: json['name'],
+        );
+
+  Map<String, dynamic> toJSON() {
+    return {
+      'name': name,
+      'id': id,
+      'logo': logo,
+    };
+  }
 }

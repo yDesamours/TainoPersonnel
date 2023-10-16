@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:tainopersonnel/src/class/state.dart';
-import 'package:tainopersonnel/src/data/database.dart';
+import 'package:tainopersonnel/src/operation/operation.dart';
 import 'package:tainopersonnel/src/pages/app_page.dart';
 import 'package:tainopersonnel/src/pages/connection_page.dart';
+import 'package:tainopersonnel/src/pages/startup.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,13 +36,16 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: FutureBuilder(
-        future: TainoPersonnelDatabase.getUser(),
-        builder: (context, snapshot) => ChangeNotifierProvider(
-          create: (context) => AppState(snapshot.data),
-          child: const SafeArea(
-            child: MainPage(),
-          ),
-        ),
+        future: launchApp(),
+        builder: (context, snapshot) =>
+            snapshot.connectionState == ConnectionState.waiting
+                ? const StartUpPage()
+                : ChangeNotifierProvider(
+                    create: (context) => AppState.fromMemory(snapshot.data!),
+                    child: const SafeArea(
+                      child: MainPage(),
+                    ),
+                  ),
       ),
     );
   }
