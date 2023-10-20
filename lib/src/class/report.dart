@@ -14,7 +14,7 @@ class Report {
       : this(
           content: json['content'],
           createdat: json['createdat'],
-          day: json['day'],
+          day: json['dayreport'],
           id: json['id'],
         );
 
@@ -22,8 +22,16 @@ class Report {
     return {
       "id": id,
       "content": content,
-      "day": day,
+      "dayreport": day,
       createdAtColumn: createdat,
+    };
+  }
+
+  Map<String, dynamic> toJSONAPI() {
+    return {
+      "id": id,
+      "content": content,
+      "dayreport": day,
     };
   }
 }

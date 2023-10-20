@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:tainopersonnel/src/class/api.dart';
+import 'package:tainopersonnel/src/class/report.dart';
 import 'package:tainopersonnel/src/class/state.dart';
 import 'package:tainopersonnel/src/class/tenant.dart';
 import 'package:tainopersonnel/src/class/user.dart';
@@ -41,9 +41,38 @@ Future<(User?, Tenant?)> launchApp() async {
   return (user, tenant);
 }
 
-void showModal(BuildContext context, Widget widget) {
-  showModalBottomSheet(
-    context: context,
-    builder: (context) => widget,
-  );
+Future<bool> sendDailyReport(AppState state) async {
+  try {
+    await API.sendDailyReport(state);
+  } catch (e) {
+    rethrow;
+  }
+
+  TainoPersonnelDatabase.insertReport(state.report);
+  return true;
+}
+
+Future<List<Report>> getDailyReports(int limit, AppState state) async {
+  String? date;
+
+  var reports = await TainoPersonnelDatabase.getReports(limit: 1);
+  if (reports.isNotEmpty) {
+    String lastReportDate = reports[0].createdat;
+    date = DateTime.parse(lastReportDate).toIso8601String();
+  }
+
+  var newReports = await API.getDailyReports(state, date);
+  if (newReports.isNotEmpty) {
+    await TainoPersonnelDatabase.insertReports(newReports);
+  }
+  reports = await TainoPersonnelDatabase.getReports(limit: limit);
+
+  return reports;
+}
+
+Future<Report> getDailyReport(int id, AppState state) async {
+  var report = await API.getDailyReport(state, id);
+  await TainoPersonnelDatabase.updateReport(report);
+
+  return Future.value(report);
 }

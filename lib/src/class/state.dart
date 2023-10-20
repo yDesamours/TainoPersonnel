@@ -11,8 +11,11 @@ class AppState extends ChangeNotifier {
 
   User? user;
   Tenant? tenant;
-  String token = '';
   Report report = Report();
+
+  String get token => user?.token ?? '';
+  String get username => user?.username ?? '';
+  String get password => user?.password ?? '';
 
   void setUser(User user) {
     this.user = user;
@@ -27,7 +30,6 @@ class AppState extends ChangeNotifier {
   void logout() {
     user = null;
     tenant = null;
-    token = '';
     notifyListeners();
   }
 }

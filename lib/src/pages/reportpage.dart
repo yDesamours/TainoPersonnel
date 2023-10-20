@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:tainopersonnel/src/class/report.dart';
+import 'package:tainopersonnel/src/class/state.dart';
 import 'package:tainopersonnel/src/data/database.dart';
-import 'package:tainopersonnel/src/operation/operation.dart';
-import 'package:tainopersonnel/src/widget/newReport.dart';
+import 'package:tainopersonnel/src/utils/utils.dart';
+import 'package:tainopersonnel/src/widget/newreport.dart';
+import 'package:tainopersonnel/src/operation/operation.dart' as operation;
+import 'package:tainopersonnel/src/widget/widget.dart';
 
 // ignore: must_be_immutable
 class ReportPage extends StatefulWidget {
@@ -14,7 +19,7 @@ class ReportPage extends StatefulWidget {
 class _ReportPageState extends State<ReportPage> {
   final ScrollController _scrollController = ScrollController();
 
-  List<Map<String, dynamic>> reports = [];
+  List<Report> reports = [];
   bool isLoading = false;
   int page = 0, size = 10;
 
@@ -31,8 +36,8 @@ class _ReportPageState extends State<ReportPage> {
       page++;
     });
 
-    List<Map<String, dynamic>> items =
-        await TainoPersonnelDatabase.getReport(offset: page * size);
+    List<Report> items =
+        await TainoPersonnelDatabase.getReports(offset: page * size);
     setState(() {
       items.addAll(items);
       isLoading = false;
@@ -55,51 +60,74 @@ class _ReportPageState extends State<ReportPage> {
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
+    AppState state = context.watch<AppState>();
 
-    return Stack(
+    return Column(
       children: [
-        Positioned(
-          bottom: 10,
-          right: 10,
-          child: FloatingActionButton(
-            onPressed: () {
-              showModal(context, const AddReport());
-            },
-            backgroundColor: theme.primaryColor,
-            child: const Icon(Icons.add),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "My Reports",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        Expanded(
+          child: Stack(
+            children: [
+              Positioned(
+                bottom: 10,
+                right: 10,
+                child: FloatingActionButton(
+                  focusElevation: 4,
+                  onPressed: () async {
+                    bool? ok = await showModal<bool>(
+                        context,
+                        AddReport(
+                          title: 'New Report',
+                          date: DateTime.now(),
+                        ));
+                    if (ok != null && ok) {
+                      setState(() {
+                        reports.add(state.report);
+                      });
+                    }
+                  },
+                  backgroundColor: theme.primaryColor,
+                  child: const Icon(Icons.add),
+                ),
+              ),
+              FutureBuilder(
+                future: operation.getDailyReports(size, state),
+                builder: (context, snapshot) {
+                  reports = snapshot.data ?? <Report>[];
+
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Placeholder();
+                  }
+
+                  return reports.isEmpty
+                      ? const Center(
+                          child: Text('Nothing to show'),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          reverse: true,
+                          itemCount: snapshot.data?.length ?? 0,
+                          itemBuilder: (context, index) {
+                            var item = reports[index];
+                            return ReportTile(
+                              item: item,
+                            );
+                          },
+                        );
+                },
+              )
+            ],
           ),
         ),
-        FutureBuilder(
-          future: TainoPersonnelDatabase.getReport(),
-          initialData: List.generate(4, (int i) => {"": dynamic}),
-          builder: (context, snapshot) {
-            reports = snapshot.data ?? [];
-
-            if (snapshot.connectionState != ConnectionState.done) {
-              return ListView.builder(
-                  itemBuilder: (context, index) => Placeholder());
-            }
-
-            return reports.isEmpty
-                ? const Center(
-                    child: Text('Nothing to show'),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    itemCount: snapshot.data?.length ?? 0,
-                    itemBuilder: (context, index) {
-                      var item = reports?[index];
-                      return ExpansionTile(
-                        title: Text(item?['day'] ?? ''),
-                        children: [
-                          Text(item?['content']),
-                        ],
-                      );
-                    },
-                  );
-          },
-        )
       ],
     );
   }

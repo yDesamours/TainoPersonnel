@@ -1,10 +1,13 @@
 import 'package:tainopersonnel/src/class/report.dart';
+import 'package:tainopersonnel/src/class/state.dart';
 import 'package:tainopersonnel/src/class/tenant.dart';
 import 'package:tainopersonnel/src/class/user.dart';
 import 'dart:convert' as conv;
 import 'package:http/http.dart' as http;
 
 class API {
+  static http.Client client = http.Client();
+
   static Future<(User, Tenant)> login(String username, String password) async {
     var user = User(username: username, password: password);
     var tenant = Tenant();
@@ -29,7 +32,6 @@ class API {
     user.token = result?['token'];
     user.role = result?['user']['role']['name'];
     user.idRole = result?['user']['role']['id'];
-    user.id = result?['tenant']['id'];
 
     tenant.name = result?['tenant']['name'];
     tenant.id = result?['tenant']['id'];
@@ -67,28 +69,78 @@ class API {
     http.get(Uri.parse(uri));
   }
 
-  static void sendDailyReport(Report report, String token) async {
-    String uri = '${_APIEndpoint._sendDailyReport}/$token';
-    final response = await http.post(
-      Uri.parse(uri),
-      body: conv.json.encode(report.toJSON()),
+  static Future<dynamic> sendRequest(Request req, AppState state) async {
+    Uri uri = Uri.parse('${req.baseEndpoint}/${state.token}');
+    final request = http.Request(req.method.name, uri);
+    request.body = conv.json.encode(req.body);
+
+    for (int i = 0; i < 2; i++) {
+      var response = await client.send(request);
+      Map<String, dynamic> body =
+          conv.json.decode(await response.stream.bytesToString());
+
+      String error = body['error'];
+      if (error == 'api.tp.err.023') {
+        var res = await login(state.username, state.password);
+        state.user = res.$1;
+      } else if (error != '') {
+        throwPotentialError(body);
+      } else {
+        return body['result'];
+      }
+    }
+  }
+
+  static Future<void> sendDailyReport(AppState state) async {
+    Request req = Request(
+      method: HttpMethod.post,
+      baseEndpoint: _APIEndpoint._sendDailyReport,
+      body: state.report.toJSONAPI(),
     );
 
-    var body = conv.json.decode(response.body);
+    state.report.id = await sendRequest(req, state) as int;
+  }
 
-    throwPotentialError(body);
+  static Future<List<dynamic>> getDailyReports(
+    AppState state, [
+    String? from,
+  ]) async {
+    Request req = Request(
+      method: HttpMethod.get,
+      baseEndpoint: _APIEndpoint._getDailyReports,
+    );
 
-    report.id = body['result'];
+    if (from != null) {
+      req.queryParams = {'from': from};
+    }
+
+    List<dynamic> reports = await sendRequest(req, state);
+    return Future.value(reports);
+  }
+
+  static Future<Report> getDailyReport(AppState state, int id) async {
+    Request req = Request(
+      method: HttpMethod.get,
+      baseEndpoint: _APIEndpoint._getDailyReport
+          .replaceFirst('%s', state.user!.id.toString())
+          .replaceFirst('%s', id.toString()),
+    );
+
+    dynamic report = await sendRequest(req, state);
+    return Future.value(Report.fromJSON(report));
   }
 }
 
 class _APIEndpoint {
-  static const String _apiEndpoint =
-      'https://app.sysgestock.com/gestionpersonnelapi';
+  static const String _apiEndpoint = 'http://192.168.10.137:8082';
+  //'https://app.sysgestock.com/gestionpersonnelapi';
   static const String _loginEndpoint = '$_apiEndpoint/login';
   static const String _getLogoEndpoint = '$_apiEndpoint/logo';
   static const String _getLogoutEndpoint = '$_apiEndpoint/logout';
-  static const String _sendDailyReport = '$_apiEndpoint/dailyreport';
+  static const String _sendDailyReport = '$_apiEndpoint/dailyreports';
+  static const String _getDailyReports = '$_apiEndpoint/dailyreports';
+  static const String _getDailyReport =
+      '$_apiEndpoint/users/%s/dailyreports/%s';
 }
 
 class _APIError {
@@ -96,3 +148,19 @@ class _APIError {
     "api.tp.err.046": "User does not exist or has been deactivated",
   };
 }
+
+class Request {
+  Request({
+    required this.method,
+    required this.baseEndpoint,
+    this.body,
+    this.queryParams,
+  });
+
+  final String baseEndpoint;
+  final HttpMethod method;
+  Map? body;
+  Map<String, String>? queryParams;
+}
+
+enum HttpMethod { post, get, put, delete }

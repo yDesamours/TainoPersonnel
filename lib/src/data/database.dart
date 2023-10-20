@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:path/path.dart' as path;
+import 'package:sqflite/sqlite_api.dart';
 import 'package:tainopersonnel/src/class/report.dart';
 import 'package:tainopersonnel/src/class/tenant.dart';
 import 'package:tainopersonnel/src/class/user.dart';
@@ -49,9 +50,9 @@ class TainoPersonnelDatabase {
 
     await database.execute('''
     CREATE TABLE $reportTable(
-      id INTEGER,
+      id INTEGER UNIQUE,
       content TEXT,
-      day TEXT,
+      dayreport TEXT,
       createdat TEXT
     )''');
   }
@@ -100,22 +101,33 @@ class TainoPersonnelDatabase {
     await database.delete(tenantTable);
   }
 
-  static Future<List<Map<String, dynamic>>> getReport(
+  static Future<List<Report>> getReports(
       {int offset = 10, int limit = 10}) async {
     var database = await localDatabase;
 
-    return database.query(
+    var reports = await database.query(
       reportTable,
       limit: limit,
       offset: offset,
       orderBy: Report.createdAtColumn,
     );
+
+    return reports.map((e) => Report.fromJSON(e)).toList();
   }
 
   static Future<int> insertReport(Report report) async {
     var database = await localDatabase;
 
-    return database.insert(reportTable, report.toJSON());
+    return database.insert(reportTable, report.toJSON(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static Future<void> insertReports(List<dynamic> reports) async {
+    var database = await localDatabase;
+
+    for (dynamic r in reports) {
+      await database.insert(reportTable, Report.fromJSON(r).toJSON());
+    }
   }
 
   static Future<int> updateReport(Report report) async {
