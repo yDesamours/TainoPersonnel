@@ -62,73 +62,78 @@ class _ReportPageState extends State<ReportPage> {
     ThemeData theme = Theme.of(context);
     AppState state = context.watch<AppState>();
 
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "My Reports",
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ],
-        ),
-        Expanded(
-          child: Stack(
+    return Padding(
+      padding: EdgeInsets.all(12),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Positioned(
-                bottom: 10,
-                right: 10,
-                child: FloatingActionButton(
-                  focusElevation: 4,
-                  onPressed: () async {
-                    bool? ok = await showModal<bool>(
-                        context,
-                        AddReport(
-                          title: 'New Report',
-                          date: DateTime.now(),
-                        ));
-                    if (ok != null && ok) {
-                      setState(() {
-                        reports.add(state.report);
-                      });
-                    }
-                  },
-                  backgroundColor: theme.primaryColor,
-                  child: const Icon(Icons.add),
-                ),
+              Text(
+                "My Reports",
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
               ),
-              FutureBuilder(
-                future: operation.getDailyReports(size, state),
-                builder: (context, snapshot) {
-                  reports = snapshot.data ?? <Report>[];
-
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return const Placeholder();
-                  }
-
-                  return reports.isEmpty
-                      ? const Center(
-                          child: Text('Nothing to show'),
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          reverse: true,
-                          itemCount: snapshot.data?.length ?? 0,
-                          itemBuilder: (context, index) {
-                            var item = reports[index];
-                            return ReportTile(
-                              item: item,
-                            );
-                          },
-                        );
-                },
-              )
             ],
           ),
-        ),
-      ],
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned(
+                  bottom: 10,
+                  right: 10,
+                  child: FloatingActionButton(
+                    focusElevation: 4,
+                    onPressed: () async {
+                      bool? ok = await showModal<bool>(
+                          context,
+                          AddReport(
+                              title: 'New Report',
+                              action: ReportAction.create));
+                      if (ok != null && ok) {
+                        setState(() {
+                          reports.add(state.report);
+                        });
+                      }
+                    },
+                    backgroundColor: theme.primaryColor,
+                    child: const Icon(Icons.add),
+                  ),
+                ),
+                FutureBuilder(
+                  future: operation.getDailyReports(size, state),
+                  builder: (context, snapshot) {
+                    reports = snapshot.data ?? <Report>[];
+
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const Placeholder();
+                    }
+
+                    return reports.isEmpty
+                        ? const Center(
+                            child: Text('Nothing to show'),
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            reverse: true,
+                            itemCount: snapshot.data?.length ?? 0,
+                            itemBuilder: (context, index) {
+                              var item = reports[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: ReportTile(
+                                  item: item,
+                                ),
+                              );
+                            },
+                          );
+                  },
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

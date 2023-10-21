@@ -16,6 +16,7 @@ class AppState extends ChangeNotifier {
   String get token => user?.token ?? '';
   String get username => user?.username ?? '';
   String get password => user?.password ?? '';
+  int get empid => user?.empId ?? 0;
 
   void setUser(User user) {
     this.user = user;

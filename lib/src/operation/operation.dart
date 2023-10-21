@@ -41,7 +41,7 @@ Future<(User?, Tenant?)> launchApp() async {
   return (user, tenant);
 }
 
-Future<bool> sendDailyReport(AppState state) async {
+Future<bool> createDailyReport(AppState state) async {
   try {
     await API.sendDailyReport(state);
   } catch (e) {
@@ -57,8 +57,10 @@ Future<List<Report>> getDailyReports(int limit, AppState state) async {
 
   var reports = await TainoPersonnelDatabase.getReports(limit: 1);
   if (reports.isNotEmpty) {
-    String lastReportDate = reports[0].createdat;
-    date = DateTime.parse(lastReportDate).toIso8601String();
+    date = DateTime.parse(reports[0].day)
+        .add(const Duration(days: 1))
+        .toIso8601String()
+        .substring(0, 10);
   }
 
   var newReports = await API.getDailyReports(state, date);
@@ -75,4 +77,15 @@ Future<Report> getDailyReport(int id, AppState state) async {
   await TainoPersonnelDatabase.updateReport(report);
 
   return Future.value(report);
+}
+
+Future<bool> updateDailyReport(AppState state) async {
+  try {
+    await API.sendDailyReport(state);
+  } catch (e) {
+    rethrow;
+  }
+
+  TainoPersonnelDatabase.insertReport(state.report);
+  return true;
 }

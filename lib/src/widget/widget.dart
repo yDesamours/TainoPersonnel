@@ -21,51 +21,60 @@ class _ReportTile extends State<ReportTile> {
     AppState state = context.watch<AppState>();
     ThemeData theme = Theme.of(context);
 
-    return ExpansionTile(
-      onExpansionChanged: (v) {
-        if (widget.item.content.isEmpty && v) {
-          operation.getDailyReport(widget.item.id, state).then((v) {
-            setState(() {
-              widget.item.content = v.content;
-            });
-          });
-        }
-      },
-      title: Text(
-        widget.item.day.substring(0, 10),
-        style: theme.textTheme.bodySmall,
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+        border: Border.all(
+          color: theme.primaryColor,
+          width: 2.0,
+        ),
       ),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            widget.item.content,
-            style: theme.textTheme.bodySmall,
-            textAlign: TextAlign.left,
-          ),
+      child: ExpansionTile(
+        onExpansionChanged: (v) {
+          if (widget.item.content.isEmpty && v) {
+            operation.getDailyReport(widget.item.id, state).then((v) {
+              setState(() {
+                widget.item.content = v.content;
+              });
+            });
+          }
+        },
+        title: Text(
+          widget.item.day.substring(0, 10),
+          style: theme.textTheme.bodySmall,
         ),
-        Container(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  showModal(
-                    context,
-                    AddReport(
-                      title: "Update Report",
-                      content: widget.item.content,
-                      date: DateTime.parse(widget.item.day),
-                    ),
-                  );
-                },
-                child: const Text("Update"),
-              ),
-            ],
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              widget.item.content,
+              style: theme.textTheme.bodySmall,
+              textAlign: TextAlign.left,
+            ),
           ),
-        ),
-      ],
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    showModal(
+                      context,
+                      AddReport(
+                        title: "Update Report",
+                        action: ReportAction.update,
+                      ),
+                    );
+                  },
+                  child: const Text("Update"),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
     ;
   }

@@ -37,6 +37,7 @@ class _AppPage extends State<AppPage> {
     tileColor = theme.primaryColor;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: MyAppBar(theme: theme),
       drawer: MyDrawer(
           selectedIndex: selectedIndex,

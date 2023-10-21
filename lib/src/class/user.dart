@@ -1,6 +1,6 @@
 class User {
   String lastname, firstname, username, password, role, token;
-  int idRole, id;
+  int idRole, id, empId;
 
   User({
     this.lastname = '',
@@ -11,6 +11,7 @@ class User {
     this.password = '',
     this.id = 0,
     this.token = '',
+    this.empId=0,
   });
 
   User.fromJSON(Map<String, dynamic> json)
@@ -22,6 +23,7 @@ class User {
           role: json['role'] ?? '',
           idRole: json['idrole'] ?? 0,
           id: json['id'],
+          empId: json['empid'],
         );
 
   Map<String, dynamic> toJSON() {
@@ -33,7 +35,8 @@ class User {
       "idrole": idRole,
       "token": token,
       "username": username,
-      "password": password
+      "password": password,
+      'empid':empId,
     };
   }
 }

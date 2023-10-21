@@ -1,5 +1,6 @@
 class Report {
   static const createdAtColumn = "createdat";
+  static const dayColumn = "dayreport";
   int id;
   String day, content, createdat;
 
@@ -14,7 +15,7 @@ class Report {
       : this(
           content: json['content'],
           createdat: json['createdat'],
-          day: json['dayreport'],
+          day: json[dayColumn],
           id: json['id'],
         );
 
@@ -22,7 +23,7 @@ class Report {
     return {
       "id": id,
       "content": content,
-      "dayreport": day,
+      dayColumn: day,
       createdAtColumn: createdat,
     };
   }

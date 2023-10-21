@@ -38,7 +38,8 @@ class TainoPersonnelDatabase {
       password TEXT,
       token TEXT,
       role TEXT,
-      idrole int
+      idrole int,
+      empid int
     )''');
 
     await database.execute('''
@@ -102,14 +103,14 @@ class TainoPersonnelDatabase {
   }
 
   static Future<List<Report>> getReports(
-      {int offset = 10, int limit = 10}) async {
+      {int offset = 0, int limit = 10}) async {
     var database = await localDatabase;
 
     var reports = await database.query(
       reportTable,
       limit: limit,
       offset: offset,
-      orderBy: Report.createdAtColumn,
+      orderBy: '${Report.dayColumn} DESC',
     );
 
     return reports.map((e) => Report.fromJSON(e)).toList();
@@ -126,7 +127,8 @@ class TainoPersonnelDatabase {
     var database = await localDatabase;
 
     for (dynamic r in reports) {
-      await database.insert(reportTable, Report.fromJSON(r).toJSON());
+      await database.insert(reportTable, Report.fromJSON(r).toJSON(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
     }
   }
 

@@ -32,6 +32,7 @@ class API {
     user.token = result?['token'];
     user.role = result?['user']['role']['name'];
     user.idRole = result?['user']['role']['id'];
+    user.empId = result?['user']['Employee']['id'];
 
     tenant.name = result?['tenant']['name'];
     tenant.id = result?['tenant']['id'];
@@ -70,7 +71,8 @@ class API {
   }
 
   static Future<dynamic> sendRequest(Request req, AppState state) async {
-    Uri uri = Uri.parse('${req.baseEndpoint}/${state.token}');
+    Uri uri = Uri.parse(
+        '${req.baseEndpoint}/${state.token}${req.queryParams.toString()}');
     final request = http.Request(req.method.name, uri);
     request.body = conv.json.encode(req.body);
 
@@ -101,20 +103,34 @@ class API {
     state.report.id = await sendRequest(req, state) as int;
   }
 
+  static Future<void> updateDailyReport(AppState state) async {
+    Request req = Request(
+      method: HttpMethod.put,
+      baseEndpoint: _APIEndpoint._sendDailyReport,
+      body: state.report.toJSONAPI(),
+    );
+
+    await sendRequest(req, state) as int;
+  }
+
   static Future<List<dynamic>> getDailyReports(
     AppState state, [
     String? from,
   ]) async {
     Request req = Request(
       method: HttpMethod.get,
-      baseEndpoint: _APIEndpoint._getDailyReports,
+      baseEndpoint: _APIEndpoint._getDailyReports
+          .replaceAll('%s', state.empid.toString()),
     );
 
     if (from != null) {
-      req.queryParams = {'from': from};
+      req.queryParams = QueryParams({'datefrom': from});
     }
 
-    List<dynamic> reports = await sendRequest(req, state);
+    var reports = await sendRequest(req, state);
+    if (reports == null) {
+      return [];
+    }
     return Future.value(reports);
   }
 
@@ -122,8 +138,7 @@ class API {
     Request req = Request(
       method: HttpMethod.get,
       baseEndpoint: _APIEndpoint._getDailyReport
-          .replaceFirst('%s', state.user!.id.toString())
-          .replaceFirst('%s', id.toString()),
+          .replaceFirst('%s', state.user!.id.toString()),
     );
 
     dynamic report = await sendRequest(req, state);
@@ -138,9 +153,10 @@ class _APIEndpoint {
   static const String _getLogoEndpoint = '$_apiEndpoint/logo';
   static const String _getLogoutEndpoint = '$_apiEndpoint/logout';
   static const String _sendDailyReport = '$_apiEndpoint/dailyreports';
-  static const String _getDailyReports = '$_apiEndpoint/dailyreports';
+  static const String _getDailyReports =
+      '$_apiEndpoint/dailyreports/employees/%s';
   static const String _getDailyReport =
-      '$_apiEndpoint/users/%s/dailyreports/%s';
+      '$_apiEndpoint/dailyreports/%s/employees/%s';
 }
 
 class _APIError {
@@ -160,7 +176,31 @@ class Request {
   final String baseEndpoint;
   final HttpMethod method;
   Map? body;
-  Map<String, String>? queryParams;
+  QueryParams? queryParams;
+}
+
+class QueryParams {
+  QueryParams([this.params = const {}]);
+  Map<String, String> params;
+
+  void add(String key, String value) {
+    params[key] = value;
+  }
+
+  @override
+  String toString() {
+    String queryString = '?';
+
+    if (params.isEmpty) {
+      return '';
+    }
+
+    for (String key in params.keys) {
+      queryString += '&$key=${params[key]}';
+    }
+
+    return queryString.replaceFirst('&', '');
+  }
 }
 
 enum HttpMethod { post, get, put, delete }
