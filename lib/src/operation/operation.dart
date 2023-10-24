@@ -1,8 +1,9 @@
-import 'package:tainopersonnel/src/class/api.dart';
-import 'package:tainopersonnel/src/class/report.dart';
-import 'package:tainopersonnel/src/class/state.dart';
-import 'package:tainopersonnel/src/class/tenant.dart';
-import 'package:tainopersonnel/src/class/user.dart';
+import 'package:tainopersonnel/src/model/api.dart';
+import 'package:tainopersonnel/src/model/employee.dart';
+import 'package:tainopersonnel/src/model/report.dart';
+import 'package:tainopersonnel/src/model/state.dart';
+import 'package:tainopersonnel/src/model/tenant.dart';
+import 'package:tainopersonnel/src/model/user.dart';
 import 'package:tainopersonnel/src/data/database.dart';
 
 void login(String username, String password, AppState state) async {
@@ -52,10 +53,17 @@ Future<bool> createDailyReport(AppState state) async {
   return true;
 }
 
-Future<List<Report>> getDailyReports(int limit, AppState state) async {
+Future<List<Report>> getDailyReports(
+    int limit, int empId, AppState state) async {
   String? date;
+  List<Report> reports;
 
-  var reports = await TainoPersonnelDatabase.getReports(limit: 1);
+  if (empId != state.empid) {
+    var res = await API.getDailyReports(state, empId, date);
+    return res.map((e) => Report.fromJSON(e)).toList();
+  }
+
+  reports = await TainoPersonnelDatabase.getReports(limit: 1);
   if (reports.isNotEmpty) {
     date = DateTime.parse(reports[0].day)
         .add(const Duration(days: 1))
@@ -63,7 +71,7 @@ Future<List<Report>> getDailyReports(int limit, AppState state) async {
         .substring(0, 10);
   }
 
-  var newReports = await API.getDailyReports(state, date);
+  var newReports = await API.getDailyReports(state, empId, date);
   if (newReports.isNotEmpty) {
     await TainoPersonnelDatabase.insertReports(newReports);
   }
@@ -88,4 +96,9 @@ Future<bool> updateDailyReport(AppState state) async {
 
   TainoPersonnelDatabase.insertReport(state.report);
   return true;
+}
+
+Future<List<Employee>> getSubordonates(AppState state) async {
+  var res = await API.getSubordonates(state);
+  return res.map((e) => Employee.fromJSON(e)).toList();
 }

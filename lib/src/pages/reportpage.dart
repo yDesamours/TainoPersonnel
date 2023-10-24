@@ -1,9 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tainopersonnel/src/class/report.dart';
-import 'package:tainopersonnel/src/class/state.dart';
+import 'package:tainopersonnel/src/model/employee.dart';
+import 'package:tainopersonnel/src/model/report.dart';
+import 'package:tainopersonnel/src/model/state.dart';
 import 'package:tainopersonnel/src/data/database.dart';
+import 'package:tainopersonnel/src/pages/reportlist.dart';
 import 'package:tainopersonnel/src/utils/utils.dart';
+import 'package:tainopersonnel/src/widget/appbar.dart';
+import 'package:tainopersonnel/src/widget/loading.dart';
+import 'package:tainopersonnel/src/widget/mytile.dart';
 import 'package:tainopersonnel/src/widget/newreport.dart';
 import 'package:tainopersonnel/src/operation/operation.dart' as operation;
 import 'package:tainopersonnel/src/widget/widget.dart';
@@ -12,127 +19,71 @@ import 'package:tainopersonnel/src/widget/widget.dart';
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
 
+  final pageTitle = "Reports";
+
   @override
   State<ReportPage> createState() => _ReportPageState();
 }
 
 class _ReportPageState extends State<ReportPage> {
-  final ScrollController _scrollController = ScrollController();
-
-  List<Report> reports = [];
+  List<Employee> employees = [];
   bool isLoading = false;
   int page = 0, size = 10;
-
-  void _onScroll() {
-    ScrollPosition p = _scrollController.position;
-    if (!p.outOfRange && p.pixels >= p.maxScrollExtent - 200 && !isLoading) {
-      _loadMore();
-    }
-  }
-
-  void _loadMore() async {
-    setState(() {
-      isLoading = true;
-      page++;
-    });
-
-    List<Report> items =
-        await TainoPersonnelDatabase.getReports(offset: page * size);
-    setState(() {
-      items.addAll(items);
-      isLoading = false;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     AppState state = context.watch<AppState>();
 
-    return Padding(
-      padding: EdgeInsets.all(12),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "My Reports",
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
-              ),
-            ],
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.pageTitle,
+            style: TextStyle(color: theme.primaryColorLight),
           ),
-          Expanded(
-            child: Stack(
-              children: [
-                Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: FloatingActionButton(
-                    focusElevation: 4,
-                    onPressed: () async {
-                      bool? ok = await showModal<bool>(
-                          context,
-                          AddReport(
-                              title: 'New Report',
-                              action: ReportAction.create));
-                      if (ok != null && ok) {
-                        setState(() {
-                          reports.add(state.report);
-                        });
-                      }
+          backgroundColor: theme.primaryColor,
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const BackButtonIcon()),
+        ),
+        body: FutureBuilder(
+            future: operation.getSubordonates(state),
+            builder: (context, snapshot) {
+              employees = [Employee(id: state.empid, name: 'me')];
+              employees.addAll(snapshot.data ?? []);
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Loading();
+              }
+
+              return ListView.builder(
+                itemCount: employees.length,
+                itemBuilder: (context, index) => SizedBox(
+                  height: 60,
+                  child: MyTile(
+                    textTheme: const TextStyle(fontSize: 20),
+                    icon: Logo(
+                      content: employees[index].name,
+                    ),
+                    title: employees[index].name,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ReportList(
+                            empId: employees[index].id,
+                            empName: employees[index].name,
+                          ),
+                        ),
+                      );
                     },
-                    backgroundColor: theme.primaryColor,
-                    child: const Icon(Icons.add),
                   ),
                 ),
-                FutureBuilder(
-                  future: operation.getDailyReports(size, state),
-                  builder: (context, snapshot) {
-                    reports = snapshot.data ?? <Report>[];
-
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return const Placeholder();
-                    }
-
-                    return reports.isEmpty
-                        ? const Center(
-                            child: Text('Nothing to show'),
-                          )
-                        : ListView.builder(
-                            controller: _scrollController,
-                            reverse: true,
-                            itemCount: snapshot.data?.length ?? 0,
-                            itemBuilder: (context, index) {
-                              var item = reports[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: ReportTile(
-                                  item: item,
-                                ),
-                              );
-                            },
-                          );
-                  },
-                )
-              ],
-            ),
-          ),
-        ],
+              );
+            }),
       ),
     );
   }

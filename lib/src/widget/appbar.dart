@@ -1,13 +1,14 @@
 // ignore_for_file: must_be_immutable
 
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tainopersonnel/src/class/api.dart';
-import 'package:tainopersonnel/src/class/state.dart';
-import 'package:tainopersonnel/src/class/user.dart';
+import 'package:tainopersonnel/src/model/api.dart';
+import 'package:tainopersonnel/src/model/state.dart';
+import 'package:tainopersonnel/src/model/user.dart';
 import 'package:tainopersonnel/src/operation/operation.dart' as operation;
 import 'package:tainopersonnel/src/widget/mytile.dart';
 
@@ -51,22 +52,14 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               value: AppBarActions.profile,
               child: MyTile(
                 title: "Profile",
-                theme: theme,
-                selected: false,
-                color: (int _) => theme.primaryColor,
-                index: 0,
-                icon: Icons.person,
+                icon: const Icon(Icons.person),
               ),
             ),
             PopupMenuItem<AppBarActions>(
               value: AppBarActions.logout,
               child: MyTile(
                 title: "Log Out",
-                theme: theme,
-                selected: false,
-                color: (int _) => theme.primaryColor,
-                index: 0,
-                icon: Icons.logout,
+                icon: const Icon(Icons.logout),
               ),
             )
           ],
@@ -87,19 +80,26 @@ class Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    int seed = content.length > 1 ? content.codeUnitAt(0) : 2;
+    Random random = Random(seed);
     Widget widget;
     if (content == '' || !image) {
       widget = DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.orange,
+          color: Color.fromRGBO(
+            random.nextInt(255),
+            random.nextInt(255),
+            random.nextInt(255),
+            1,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: FittedBox(
             fit: BoxFit.contain,
             child: Text(
-              alt[0],
+              content.isNotEmpty ? content[0] : alt[0],
             ),
           ),
         ),
@@ -112,7 +112,12 @@ class Logo extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.only(
+        bottom: 5,
+        left: 5,
+        right: 10,
+        top: 5,
+      ),
       child: widget,
     );
   }

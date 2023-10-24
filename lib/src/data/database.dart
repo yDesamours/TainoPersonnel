@@ -1,9 +1,9 @@
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqlite_api.dart';
-import 'package:tainopersonnel/src/class/report.dart';
-import 'package:tainopersonnel/src/class/tenant.dart';
-import 'package:tainopersonnel/src/class/user.dart';
+import 'package:tainopersonnel/src/model/report.dart';
+import 'package:tainopersonnel/src/model/tenant.dart';
+import 'package:tainopersonnel/src/model/user.dart';
 
 class TainoPersonnelDatabase {
   static sql.Database? instance;

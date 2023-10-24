@@ -1,7 +1,8 @@
-import 'package:tainopersonnel/src/class/report.dart';
-import 'package:tainopersonnel/src/class/state.dart';
-import 'package:tainopersonnel/src/class/tenant.dart';
-import 'package:tainopersonnel/src/class/user.dart';
+import 'package:tainopersonnel/src/model/employee.dart';
+import 'package:tainopersonnel/src/model/report.dart';
+import 'package:tainopersonnel/src/model/state.dart';
+import 'package:tainopersonnel/src/model/tenant.dart';
+import 'package:tainopersonnel/src/model/user.dart';
 import 'dart:convert' as conv;
 import 'package:http/http.dart' as http;
 
@@ -71,25 +72,32 @@ class API {
   }
 
   static Future<dynamic> sendRequest(Request req, AppState state) async {
-    Uri uri = Uri.parse(
-        '${req.baseEndpoint}/${state.token}${req.queryParams.toString()}');
-    final request = http.Request(req.method.name, uri);
-    request.body = conv.json.encode(req.body);
+    var requestBody = conv.json.encode(req.body);
+    http.Request request;
 
     for (int i = 0; i < 2; i++) {
+      Uri uri = Uri.parse(req.fullUri(state));
+      request = http.Request(req.method.name, uri);
+      request.body = requestBody;
+
       var response = await client.send(request);
       Map<String, dynamic> body =
           conv.json.decode(await response.stream.bytesToString());
 
       String error = body['error'];
-      if (error == 'api.tp.err.023') {
-        var res = await login(state.username, state.password);
-        state.user = res.$1;
-      } else if (error != '') {
-        throwPotentialError(body);
-      } else {
-        return body['result'];
+      if (error != '') {
+        switch (error) {
+          case 'api.tp.err.023':
+            var res = await login(state.username, state.password);
+            state.user = res.$1;
+          case 'api.tp.err.025':
+            return null;
+          default:
+            throwPotentialError(body);
+        }
+        continue;
       }
+      return body['result'];
     }
   }
 
@@ -114,13 +122,14 @@ class API {
   }
 
   static Future<List<dynamic>> getDailyReports(
-    AppState state, [
+    AppState state,
+    int empId, [
     String? from,
   ]) async {
     Request req = Request(
       method: HttpMethod.get,
-      baseEndpoint: _APIEndpoint._getDailyReports
-          .replaceAll('%s', state.empid.toString()),
+      baseEndpoint:
+          _APIEndpoint._getDailyReports.replaceAll('%s', empId.toString()),
     );
 
     if (from != null) {
@@ -137,31 +146,50 @@ class API {
   static Future<Report> getDailyReport(AppState state, int id) async {
     Request req = Request(
       method: HttpMethod.get,
-      baseEndpoint: _APIEndpoint._getDailyReport
-          .replaceFirst('%s', state.user!.id.toString()),
+      baseEndpoint:
+          _APIEndpoint._getDailyReport.replaceFirst('%s', id.toString()),
     );
 
     dynamic report = await sendRequest(req, state);
+    if (report == null) {
+      return Report();
+    }
     return Future.value(Report.fromJSON(report));
+  }
+
+  static Future<List<dynamic>> getSubordonates(AppState state) async {
+    Request req = Request(
+        method: HttpMethod.get,
+        baseEndpoint: _APIEndpoint._getSubordonateEndpoint
+            .replaceFirst('%s', state.userId.toString()));
+
+    dynamic res = await sendRequest(req, state);
+
+    if (res == null) {
+      return [];
+    }
+    return res;
   }
 }
 
 class _APIEndpoint {
-  static const String _apiEndpoint = 'http://192.168.10.137:8082';
+  static const _apiEndpoint = 'http://192.168.10.137:8082';
   //'https://app.sysgestock.com/gestionpersonnelapi';
-  static const String _loginEndpoint = '$_apiEndpoint/login';
-  static const String _getLogoEndpoint = '$_apiEndpoint/logo';
-  static const String _getLogoutEndpoint = '$_apiEndpoint/logout';
-  static const String _sendDailyReport = '$_apiEndpoint/dailyreports';
-  static const String _getDailyReports =
-      '$_apiEndpoint/dailyreports/employees/%s';
-  static const String _getDailyReport =
-      '$_apiEndpoint/dailyreports/%s/employees/%s';
+  static const _loginEndpoint = '$_apiEndpoint/login';
+  static const _getLogoEndpoint = '$_apiEndpoint/logo';
+  static const _getLogoutEndpoint = '$_apiEndpoint/logout';
+  static const _sendDailyReport = '$_apiEndpoint/dailyreports';
+  static const _getDailyReports = '$_apiEndpoint/dailyreports/employees/%s';
+  static const _getDailyReport = '$_apiEndpoint/dailyreports/%s';
+  static const _getSubordonateEndpoint =
+      '$_apiEndpoint/employees/upperhierarchies/%s/subordonates/';
 }
 
 class _APIError {
   static const errors = {
     "api.tp.err.046": "User does not exist or has been deactivated",
+    "api.tp.err.023": "invalid token",
+    "api.tp.err.025": "no data",
   };
 }
 
@@ -177,6 +205,9 @@ class Request {
   final HttpMethod method;
   Map? body;
   QueryParams? queryParams;
+
+  String fullUri(AppState state) =>
+      '$baseEndpoint/${state.token}${queryParams?.toString() ?? ''}';
 }
 
 class QueryParams {

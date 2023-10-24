@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:tainopersonnel/src/class/report.dart';
-import 'package:tainopersonnel/src/class/tenant.dart';
 
-import 'package:tainopersonnel/src/class/user.dart';
+import 'package:tainopersonnel/src/model/report.dart';
+import 'package:tainopersonnel/src/model/tenant.dart';
+import 'package:tainopersonnel/src/model/user.dart';
 
 class AppState extends ChangeNotifier {
   AppState(this.user, this.tenant);
@@ -17,6 +17,7 @@ class AppState extends ChangeNotifier {
   String get username => user?.username ?? '';
   String get password => user?.password ?? '';
   int get empid => user?.empId ?? 0;
+  int get userId => user?.id ?? 0;
 
   void setUser(User user) {
     this.user = user;

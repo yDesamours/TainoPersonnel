@@ -21,10 +21,6 @@ class _AppPage extends State<AppPage> {
     Placeholder(color: Colors.deepPurpleAccent)
   ];
 
-  Color? tileChildColor(int selected) {
-    return selected == selectedIndex ? Colors.white : tileColor;
-  }
-
   void setSelected(int value) {
     setState(() {
       selectedIndex = value;
@@ -39,10 +35,7 @@ class _AppPage extends State<AppPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: MyAppBar(theme: theme),
-      drawer: MyDrawer(
-          selectedIndex: selectedIndex,
-          setSelected: setSelected,
-          color: tileChildColor),
+      drawer: MyDrawer(),
       body: pages[selectedIndex],
     );
   }

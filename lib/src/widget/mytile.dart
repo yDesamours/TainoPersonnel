@@ -3,42 +3,32 @@
 import 'package:flutter/material.dart';
 
 class MyTile extends StatelessWidget {
-  bool selected;
   void Function()? onTap;
-  IconData? icon;
-  ThemeData? theme;
-  TextTheme? textTheme;
-  int index;
+  Widget? icon;
   String title;
-  Color? Function(int) color;
+  TextStyle? textTheme;
 
   MyTile({
     super.key,
-    required this.selected,
     this.onTap,
-    required this.color,
-    this.theme,
-    required this.index,
     this.title = '',
     this.icon,
-  }) : textTheme = theme?.textTheme;
+    this.textTheme,
+  });
 
   @override
   Widget build(BuildContext context) {
+    ThemeData theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.only(bottom: 5),
       child: ListTile(
-        selected: selected,
         onTap: onTap,
-        selectedTileColor: theme?.primaryColor,
+        selectedTileColor: theme.primaryColor,
         title: Text(
           title,
-          style: textTheme?.bodySmall,
+          style: textTheme ?? theme.textTheme.bodySmall,
         ),
-        leading: Icon(
-          icon,
-          color: color(index),
-        ),
+        leading: icon,
       ),
     );
   }

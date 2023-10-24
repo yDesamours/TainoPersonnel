@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:tainopersonnel/src/class/state.dart';
+import 'package:tainopersonnel/src/model/state.dart';
 import 'package:tainopersonnel/src/widget/dialogbox.dart';
 import 'package:tainopersonnel/src/widget/inputfield.dart';
 import 'package:tainopersonnel/src/operation/operation.dart' as operation;
@@ -16,6 +16,7 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   bool canPress = false;
+  bool isLoading = false;
 
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -56,6 +57,9 @@ class _LoginFormState extends State<LoginForm> {
     void Function()? loginFunction;
 
     loginFunction = () async {
+      setState(() {
+        isLoading = true;
+      });
       try {
         operation.login(
             _usernameController.text, _passwordController.text, state);
@@ -65,6 +69,10 @@ class _LoginFormState extends State<LoginForm> {
         await showDialog(
             context: context,
             builder: (context) => DialogBox(message: e.toString()));
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
       }
     };
 
@@ -110,10 +118,12 @@ class _LoginFormState extends State<LoginForm> {
                             const Color.fromARGB(200, 33, 150, 243),
                         shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.zero)),
-                    child: const Text(
-                      'Connect',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    child: isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text(
+                            'Connect',
+                            style: TextStyle(color: Colors.white),
+                          ),
                   ),
                 ),
               ],

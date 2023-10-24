@@ -22,7 +22,10 @@ Future<bool> confirmationRequest(BuildContext context) async {
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
-              child: const Text("Yes"),
+              child: const Text(
+                "Yes",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
             ElevatedButton(
               style: ButtonStyle(
@@ -31,7 +34,10 @@ Future<bool> confirmationRequest(BuildContext context) async {
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
-              child: const Text("No"),
+              child: const Text(
+                "No",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
