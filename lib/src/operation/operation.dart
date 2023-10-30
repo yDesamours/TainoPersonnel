@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:tainopersonnel/src/model/api.dart';
 import 'package:tainopersonnel/src/model/employee.dart';
 import 'package:tainopersonnel/src/model/report.dart';
@@ -6,7 +8,7 @@ import 'package:tainopersonnel/src/model/tenant.dart';
 import 'package:tainopersonnel/src/model/user.dart';
 import 'package:tainopersonnel/src/data/database.dart';
 
-void login(String username, String password, AppState state) async {
+Future<void> login(String username, String password, AppState state) async {
   var (user, tenant) = await API.login(username, password);
 
   state.setUser(user);
@@ -32,6 +34,8 @@ Future<(User?, Tenant?)> launchApp() async {
 
   try {
     (user, tenant) = await API.login(user.username, user.password);
+  } on SocketException {
+    return (user, tenant);
   } catch (e) {
     TainoPersonnelDatabase.deleteTenant();
     TainoPersonnelDatabase.deleteUser();
@@ -53,17 +57,13 @@ Future<bool> createDailyReport(AppState state) async {
   return true;
 }
 
-Future<List<Report>> getDailyReports(
-    int limit, int empId, AppState state) async {
+Future<List<Report>> getDailyReports(AppState state,
+    {int limit = 10, offset = 0}) async {
   String? date;
   List<Report> reports;
 
-  if (empId != state.empid) {
-    var res = await API.getDailyReports(state, empId, date);
-    return res.map((e) => Report.fromJSON(e)).toList();
-  }
-
-  reports = await TainoPersonnelDatabase.getReports(limit: 1);
+  reports = await TainoPersonnelDatabase.getReports(state.empid,
+      limit: limit, offset: offset);
   if (reports.isNotEmpty) {
     date = DateTime.parse(reports[0].day)
         .add(const Duration(days: 1))
@@ -71,11 +71,17 @@ Future<List<Report>> getDailyReports(
         .substring(0, 10);
   }
 
-  var newReports = await API.getDailyReports(state, empId, date);
+  var newReports = await API.getDailyReports(
+    state,
+    from: date,
+    limit: limit,
+    offset: offset,
+  );
   if (newReports.isNotEmpty) {
     await TainoPersonnelDatabase.insertReports(newReports);
   }
-  reports = await TainoPersonnelDatabase.getReports(limit: limit);
+  reports = await TainoPersonnelDatabase.getReports(state.empid,
+      limit: limit, offset: offset);
 
   return reports;
 }
@@ -101,4 +107,21 @@ Future<bool> updateDailyReport(AppState state) async {
 Future<List<Employee>> getSubordonates(AppState state) async {
   var res = await API.getSubordonates(state);
   return res.map((e) => Employee.fromJSON(e)).toList();
+}
+
+Future<List<Employee>> getSubordonatesLastReportDate(AppState state) async {
+  var res = await API.getSubordonatesLastReportDate(state);
+  return res.map((e) => Employee.fromJSON(e)).toList();
+}
+
+String formatDate(String date) {
+  if (date.isEmpty || date.startsWith('0001-')) {
+    return "";
+  }
+
+  try {
+    date = DateTime.parse(date).toLocal().toIso8601String().substring(0, 10);
+    return date;
+  } catch (_) {}
+  return "";
 }

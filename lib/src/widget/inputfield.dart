@@ -3,16 +3,18 @@
 import 'package:flutter/material.dart';
 
 class InputField extends StatelessWidget {
-  InputField(
-      {super.key,
-      required this.controller,
-      required this.labelText,
-      this.obscureText = false,
-      this.required = false,
-      this.validator,
-      this.icon,
-      this.content = '',
-      this.expands = false});
+  InputField({
+    super.key,
+    required this.controller,
+    required this.labelText,
+    this.obscureText = false,
+    this.required = false,
+    this.validator,
+    this.icon,
+    this.content = '',
+    this.expands = false,
+    this.hint,
+  });
 
   final TextEditingController controller;
   String content = '';
@@ -22,26 +24,26 @@ class InputField extends StatelessWidget {
   final bool required;
   String? Function(String?)? validator;
   bool obscureText;
-  TextStyle style = const TextStyle(
-    color: Color.fromARGB(49, 1, 1, 26),
-    fontSize: 16,
-  );
+  String? hint;
 
   @override
   Widget build(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+
     InputDecoration decoration = InputDecoration(
       labelText: labelText,
-      labelStyle: style,
+      hintText: hint,
+      labelStyle: theme.textTheme.bodyMedium,
       prefixIcon: Icon(
         icon,
-        color: Colors.blue,
+        color: theme.primaryColor,
       ),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.only(left: 18.0),
       border: const OutlineInputBorder(
         borderSide:
-            BorderSide(color: Color.fromARGB(50, 0, 0, 128), width: 10.0),
+            BorderSide(color: Color.fromARGB(50, 0, 0, 128), width: 2.0),
         borderRadius: BorderRadius.zero,
       ),
     );
@@ -51,7 +53,8 @@ class InputField extends StatelessWidget {
       obscureText: obscureText,
       validator: validator,
       decoration: decoration,
-      style: style,
+      scribbleEnabled: true,
+      style: theme.textTheme.bodyMedium,
       maxLines: expands ? double.maxFinite.floor() : 1,
     );
   }
@@ -76,17 +79,11 @@ class DateSelection extends StatelessWidget {
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: date ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light(),
-          child: child!,
-        );
-      },
-    );
+        context: context,
+        initialDate: date ?? DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2101),
+        builder: (context, child) => child!);
     if (picked != null) {
       controller.text = picked.toString();
     }
@@ -94,6 +91,8 @@ class DateSelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+
     InputDecoration decoration = InputDecoration(
       labelText: labelText,
       labelStyle: style,
@@ -101,14 +100,19 @@ class DateSelection extends StatelessWidget {
         style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent, shape: null),
         onPressed: () => _selectDate(context),
-        icon: const Icon(Icons.calendar_today),
+        icon: Icon(
+          Icons.calendar_today,
+          color: theme.primaryColor,
+        ),
       ),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.only(left: 18.0),
       border: const OutlineInputBorder(
-        borderSide:
-            BorderSide(color: Color.fromARGB(50, 0, 0, 128), width: 10.0),
+        borderSide: BorderSide(
+          color: Color.fromARGB(50, 0, 0, 128),
+          width: 10.0,
+        ),
         borderRadius: BorderRadius.zero,
       ),
     );

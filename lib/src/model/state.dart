@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:tainopersonnel/src/model/report.dart';
 import 'package:tainopersonnel/src/model/tenant.dart';
 import 'package:tainopersonnel/src/model/user.dart';
+import 'package:connectivity/connectivity.dart';
 
 class AppState extends ChangeNotifier {
   AppState(this.user, this.tenant);
@@ -34,4 +35,18 @@ class AppState extends ChangeNotifier {
     tenant = null;
     notifyListeners();
   }
+}
+
+class ConnectivityState extends ChangeNotifier {
+  ConnectivityResult _connectivityResult = ConnectivityResult.none;
+
+  ConnectivityState() {
+    Connectivity().onConnectivityChanged.listen((result) {
+      _connectivityResult = result;
+      notifyListeners();
+    });
+  }
+
+  ConnectivityResult get connectivityResult => _connectivityResult;
+  bool get isOnline => _connectivityResult != ConnectivityResult.none;
 }

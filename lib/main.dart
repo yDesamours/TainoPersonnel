@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as pvd;
+import 'package:tainopersonnel/src/intl/intl.dart';
 
 import 'package:tainopersonnel/src/model/state.dart';
 import 'package:tainopersonnel/src/operation/operation.dart';
 import 'package:tainopersonnel/src/pages/home.dart';
 import 'package:tainopersonnel/src/pages/connection_page.dart';
 import 'package:tainopersonnel/src/pages/startup.dart';
+import 'package:tainopersonnel/src/theme/theme.dart' as theme;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,33 +21,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: launchApp(),
-      builder: (context, snapshot) => ChangeNotifierProvider<AppState>(
-        create: (context) => AppState.fromMemory(snapshot.data!),
-        builder: (context, child) => MaterialApp(
+      builder: (ctx, snapshot) => pvd.MultiProvider(
+        providers: [
+          pvd.ChangeNotifierProvider(
+              create: (ctx) => AppState.fromMemory(snapshot.data!)),
+          pvd.ChangeNotifierProvider(create: (ctx) => ConnectivityState()),
+          pvd.ChangeNotifierProvider<AppLanguage>(
+            create: (ctx) => AppLanguage(),
+          )
+        ],
+        child: MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Namer App',
-          theme: ThemeData(
-            useMaterial3: true,
-            primaryColorLight: Colors.white,
-            textTheme: const TextTheme(
-              bodyLarge: TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: 40,
-              ),
-              bodyMedium: TextStyle(
-                fontFamily: 'arial',
-                fontSize: 30,
-              ),
-              bodySmall: TextStyle(
-                fontFamily: 'arial',
-                fontSize: 17,
-              ),
-            ),
-            colorScheme: ColorScheme.fromSeed(
-              background: const Color.fromARGB(255, 222, 225, 240),
-              seedColor: const Color.fromARGB(255, 28, 51, 177),
-            ),
-          ),
+          theme: theme.lightTheme,
           home: snapshot.connectionState == ConnectionState.waiting
               ? const StartUpPage()
               : const SafeArea(

@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
-import "package:tainopersonnel/src/pages/reportpage.dart";
 
 import "package:tainopersonnel/src/widget/appbar.dart";
+import 'package:tainopersonnel/src/widget/connection_state.dart';
 import "package:tainopersonnel/src/widget/mydrawer.dart";
 
 class AppPage extends StatefulWidget {
@@ -13,13 +13,6 @@ class AppPage extends StatefulWidget {
 class _AppPage extends State<AppPage> {
   var selectedIndex = 0;
   late Color tileColor;
-
-  List<Widget> pages = const [
-    Placeholder(color: Colors.white24),
-    ReportPage(),
-    Placeholder(color: Colors.purple),
-    Placeholder(color: Colors.deepPurpleAccent)
-  ];
 
   void setSelected(int value) {
     setState(() {
@@ -35,8 +28,12 @@ class _AppPage extends State<AppPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: MyAppBar(theme: theme),
-      drawer: MyDrawer(),
-      body: pages[selectedIndex],
+      drawer: const MyDrawer(),
+      body: const Column(
+        children: [
+          ConnectionStateShower(),
+        ],
+      ),
     );
   }
 }

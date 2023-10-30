@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tainopersonnel/src/intl/intl.dart';
 import 'package:tainopersonnel/src/model/report.dart';
 import 'package:tainopersonnel/src/model/state.dart';
-import 'package:tainopersonnel/src/data/database.dart';
 
 import 'package:tainopersonnel/src/utils/utils.dart' as util;
+import 'package:tainopersonnel/src/widget/connection_state.dart';
 import 'package:tainopersonnel/src/widget/loading.dart';
 import 'package:tainopersonnel/src/widget/newreport.dart';
 import 'package:tainopersonnel/src/operation/operation.dart' as operation;
@@ -14,8 +15,9 @@ class ReportList extends StatefulWidget {
   final int empId;
   final String empName;
   final int size = 10;
+  late AppState state;
 
-  const ReportList({super.key, required this.empId, required this.empName});
+  ReportList({super.key, required this.empId, required this.empName});
 
   @override
   State<ReportList> createState() => _ReportListState();
@@ -25,6 +27,7 @@ class _ReportListState extends State<ReportList> {
   final ScrollController _scrollController = ScrollController();
   bool isLoading = false;
   int page = 0;
+  List<Report> reports = [];
 
   @override
   void initState() {
@@ -49,11 +52,11 @@ class _ReportListState extends State<ReportList> {
   void _loadMore() async {
     setState(() {
       isLoading = true;
-      page++;
+      page = (reports.length / widget.size).ceil();
     });
 
-    List<Report> items =
-        await TainoPersonnelDatabase.getReports(offset: page * widget.size);
+    List<Report> items = await operation.getDailyReports(widget.state,
+        offset: page * widget.size);
     setState(() {
       items.addAll(items);
       isLoading = false;
@@ -62,8 +65,8 @@ class _ReportListState extends State<ReportList> {
 
   @override
   Widget build(BuildContext context) {
-    late List<Report> reports;
-    AppState state = context.watch<AppState>();
+    widget.state = context.watch<AppState>();
+    Language language = context.watch<AppLanguage>().language;
     ThemeData theme = Theme.of(context);
 
     return SafeArea(
@@ -77,7 +80,7 @@ class _ReportListState extends State<ReportList> {
           bottom: Tab(
             height: 40,
             child: Text(
-              "work reports",
+              language.workReports,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.primaryColorLight),
             ),
@@ -90,18 +93,19 @@ class _ReportListState extends State<ReportList> {
           ),
           //bottom: TabBar(),),
         ),
-        floatingActionButton: widget.empId == state.empid
+        floatingActionButton: widget.empId == widget.state.empid
             ? FloatingActionButton(
                 onPressed: () async {
                   bool? ok = await util.showModal<bool>(
                     context,
-                    AddReport(title: 'New Report', action: ReportAction.create),
+                    AddReport(
+                        title: language.newReport, action: ReportAction.create),
                   );
                   if (ok != null && ok) {
                     setState(() {
-                      reports.add(state.report);
+                      reports.add(widget.state.report);
                     });
-                    state.report = Report();
+                    widget.state.report = Report();
                   }
                 },
                 backgroundColor: theme.primaryColor,
@@ -113,39 +117,57 @@ class _ReportListState extends State<ReportList> {
           child: Column(
             children: [
               Expanded(
-                child: Stack(
-                  children: [
-                    FutureBuilder(
-                      future: operation.getDailyReports(
-                          widget.size, widget.empId, state),
-                      builder: (context, snapshot) {
-                        reports = snapshot.data ?? <Report>[];
+                child: FutureBuilder(
+                  future: operation.getDailyReports(
+                    widget.state,
+                    offset: reports.length,
+                  ),
+                  builder: (context, snapshot) {
+                    Language language = context.watch<AppLanguage>().language;
+                    reports = snapshot.data ?? <Report>[];
 
-                        if (snapshot.connectionState != ConnectionState.done) {
-                          return const Loading();
-                        }
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const Loading();
+                    }
 
-                        return reports.isEmpty
-                            ? const Center(
-                                child: Text('Nothing to show'),
-                              )
-                            : ListView.builder(
-                                controller: _scrollController,
-                                reverse: true,
-                                itemCount: snapshot.data?.length ?? 0,
-                                itemBuilder: (context, index) {
-                                  var item = reports[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 4),
-                                    child: ReportTile(
-                                      item: item,
-                                    ),
-                                  );
-                                },
-                              );
-                      },
-                    )
-                  ],
+                    return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const ConnectionStateShower(),
+                          reports.isEmpty
+                              ? Text(language.emptyList)
+                              : Expanded(
+                                  child: RefreshIndicator(
+                                  onRefresh: () async {
+                                    var reportlist =
+                                        await operation.getDailyReports(
+                                      widget.state,
+                                      offset: widget.size,
+                                    );
+
+                                    setState(() {
+                                      reports = reportlist;
+                                    });
+                                  },
+                                  child: ListView.builder(
+                                    controller: _scrollController,
+                                    itemCount: snapshot.data?.length ?? 0,
+                                    itemBuilder: (context, index) {
+                                      var item = reports[index];
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 4),
+                                        child: ReportTile(
+                                          item: item,
+                                          showUpdate: widget.empId ==
+                                              widget.state.empid,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ))
+                        ]);
+                  },
                 ),
               ),
             ],

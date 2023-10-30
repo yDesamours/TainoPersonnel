@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tainopersonnel/src/intl/intl.dart';
 import 'package:tainopersonnel/src/model/api.dart';
 import 'package:tainopersonnel/src/model/state.dart';
 import 'package:tainopersonnel/src/model/user.dart';
@@ -25,12 +26,14 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     AppState state = context.watch<AppState>();
+    Language language = context.watch<AppLanguage>().language;
+
     User user = state.user!;
     return AppBar(
       centerTitle: true,
       backgroundColor: theme.primaryColor,
       title: const Image(
-        image: AssetImage("assets/tainopersonnel.png"),
+        image: AssetImage("assets/images/tainopersonnel.png"),
         height: 40,
       ),
       actions: [
@@ -46,19 +49,25 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               case AppBarActions.profile:
             }
           },
-          child: Logo(content: '${user.firstname} ${user.lastname}'),
+          child: Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Logo(content: '${user.firstname} ${user.lastname}'),
+          ),
           itemBuilder: (context) => [
             PopupMenuItem<AppBarActions>(
               value: AppBarActions.profile,
               child: MyTile(
-                title: "Profile",
+                title: Text(language.profil),
                 icon: const Icon(Icons.person),
               ),
             ),
             PopupMenuItem<AppBarActions>(
               value: AppBarActions.logout,
               child: MyTile(
-                title: "Log Out",
+                title: Text(
+                  language.logout,
+                  style: TextStyle(color: theme.primaryColor),
+                ),
                 icon: const Icon(Icons.logout),
               ),
             )
@@ -84,24 +93,10 @@ class Logo extends StatelessWidget {
     Random random = Random(seed);
     Widget widget;
     if (content == '' || !image) {
-      widget = DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color.fromRGBO(
-            random.nextInt(255),
-            random.nextInt(255),
-            random.nextInt(255),
-            1,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: FittedBox(
-            fit: BoxFit.contain,
-            child: Text(
-              content.isNotEmpty ? content[0] : alt[0],
-            ),
-          ),
+      widget = FittedBox(
+        fit: BoxFit.contain,
+        child: Text(
+          content.isNotEmpty ? content[0] : alt[0],
         ),
       );
     } else {
@@ -111,14 +106,20 @@ class Logo extends StatelessWidget {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(
-        bottom: 5,
-        left: 5,
-        right: 10,
-        top: 5,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color.fromRGBO(
+          random.nextInt(255),
+          random.nextInt(255),
+          random.nextInt(255),
+          1,
+        ),
       ),
-      child: widget,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: widget,
+      ),
     );
   }
 }

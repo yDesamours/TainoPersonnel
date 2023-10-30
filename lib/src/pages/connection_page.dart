@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:tainopersonnel/src/widget/apptitle.dart';
+import 'package:tainopersonnel/src/widget/connection_state.dart';
 import 'package:tainopersonnel/src/widget/loginform.dart';
 
 class ConnectionPage extends StatelessWidget {
@@ -12,13 +13,14 @@ class ConnectionPage extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/imageSuits.webp"),
+            image: AssetImage("assets/images/imageSuits.webp"),
             fit: BoxFit.cover,
           ),
         ),
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            ConnectionStateShower(),
             AppTitle(),
             LoginForm(),
           ],

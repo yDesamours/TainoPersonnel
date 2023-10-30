@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tainopersonnel/src/intl/intl.dart';
 import 'package:tainopersonnel/src/model/state.dart';
 import 'package:tainopersonnel/src/model/tenant.dart';
 import 'package:tainopersonnel/src/pages/reportpage.dart';
@@ -18,6 +19,7 @@ class MyDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
+    Language language = context.watch<AppLanguage>().language;
     TextTheme textTheme = theme.textTheme;
     AppState state = context.watch<AppState>();
     User user = state.user!;
@@ -30,45 +32,43 @@ class MyDrawer extends StatelessWidget {
           Expanded(
             flex: 2,
             child: ListView(children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                    color: Color.alphaBlend(
-                  theme.primaryColor,
-                  Colors.deepPurpleAccent,
-                )),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Logo(
-                          content: tenant.logo,
-                          alt: tenant.name,
-                        ),
-                        Expanded(
-                          child: Text(
-                            tenant.name,
-                            style: textTheme.bodyLarge,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Expanded(
-                      child: Text(
-                        "${user.firstname} ${user.lastname}",
-                        style: textTheme.bodyMedium,
+              SizedBox(
+                height: 120,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor,
+                  ),
+                  child: DrawerHeader(
+                    padding: const EdgeInsets.only(left: 2.0),
+                    child: MyTile(
+                      icon: Logo(
+                        content: tenant.logo,
+                        alt: tenant.name,
+                      ),
+                      title: Text(
+                        tenant.name,
+                        style: textTheme.bodyLarge!
+                            .copyWith(color: theme.colorScheme.secondary),
                         overflow: TextOverflow.ellipsis,
                       ),
+                      subTitle: Text(
+                        "${user.firstname} ${user.lastname}",
+                        style: textTheme.bodyMedium!
+                            .copyWith(color: theme.colorScheme.secondary),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      padding: 2.0,
                     ),
-                  ],
+                  ),
                 ),
               ),
               MyTile(
-                title: "Report",
-                icon: Icon(
+                title: Text(
+                  language.report,
+                  style: theme.textTheme.bodySmall,
+                ),
+                icon: const Icon(
                   Icons.note,
-                  color: theme.primaryColor,
                 ),
                 onTap: () {
                   //  setSelected(1);
@@ -79,24 +79,16 @@ class MyDrawer extends StatelessWidget {
                           builder: (context) => const ReportPage()));
                 },
               ),
-              MyTile(
-                title: "My time",
-                textTheme: textTheme.bodySmall,
-                icon: Icon(
-                  Icons.calendar_month,
-                  color: theme.primaryColor,
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
             ]),
           ),
           const Divider(
             thickness: 2.0,
           ),
           MyTile(
-            title: "Settings",
+            title: Text(
+              language.settings,
+              style: theme.textTheme.bodySmall,
+            ),
             icon: const Icon(Icons.settings),
             onTap: () {
               Navigator.pop(context);

@@ -11,10 +11,7 @@ class AppTitle extends StatelessWidget {
     return const Text(
       "TainoPersonnel",
       style: TextStyle(
-          fontFamily: 'Roboto',
-          fontSize: 46,
-          color: Colors.blue,
-          fontWeight: FontWeight.w900),
+          fontSize: 46, color: Colors.blue, fontWeight: FontWeight.w900),
     );
   }
 }

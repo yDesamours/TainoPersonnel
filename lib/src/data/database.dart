@@ -52,6 +52,7 @@ class TainoPersonnelDatabase {
     await database.execute('''
     CREATE TABLE $reportTable(
       id INTEGER UNIQUE,
+      empid INTEGER,
       content TEXT,
       dayreport TEXT,
       createdat TEXT
@@ -102,7 +103,7 @@ class TainoPersonnelDatabase {
     await database.delete(tenantTable);
   }
 
-  static Future<List<Report>> getReports(
+  static Future<List<Report>> getReports(int empId,
       {int offset = 0, int limit = 10}) async {
     var database = await localDatabase;
 
@@ -111,6 +112,8 @@ class TainoPersonnelDatabase {
       limit: limit,
       offset: offset,
       orderBy: '${Report.dayColumn} DESC',
+      where: "empid=?",
+      whereArgs: [empId],
     );
 
     return reports.map((e) => Report.fromJSON(e)).toList();
@@ -118,6 +121,8 @@ class TainoPersonnelDatabase {
 
   static Future<int> insertReport(Report report) async {
     var database = await localDatabase;
+
+    var x = await database.rawQuery('SELECT MIN(id) FROM $reportTable');
 
     return database.insert(reportTable, report.toJSON(),
         conflictAlgorithm: ConflictAlgorithm.replace);

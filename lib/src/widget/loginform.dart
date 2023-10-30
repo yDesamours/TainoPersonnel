@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tainopersonnel/src/intl/intl.dart';
 
 import 'package:tainopersonnel/src/model/state.dart';
+import 'package:tainopersonnel/src/widget/actionbutton.dart';
 import 'package:tainopersonnel/src/widget/dialogbox.dart';
 import 'package:tainopersonnel/src/widget/inputfield.dart';
 import 'package:tainopersonnel/src/operation/operation.dart' as operation;
@@ -16,7 +18,6 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   bool canPress = false;
-  bool isLoading = false;
 
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -53,15 +54,12 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     AppState state = context.watch<AppState>();
+    ConnectivityState connection = context.watch<ConnectivityState>();
+    Language langue = context.watch<AppLanguage>().language;
 
-    void Function()? loginFunction;
-
-    loginFunction = () async {
-      setState(() {
-        isLoading = true;
-      });
+    Future<void> loginFunction() async {
       try {
-        operation.login(
+        await operation.login(
             _usernameController.text, _passwordController.text, state);
       } catch (e) {
         if (!mounted) return;
@@ -69,12 +67,8 @@ class _LoginFormState extends State<LoginForm> {
         await showDialog(
             context: context,
             builder: (context) => DialogBox(message: e.toString()));
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
       }
-    };
+    }
 
     return Padding(
       padding: const EdgeInsets.all(10.0),
@@ -88,7 +82,7 @@ class _LoginFormState extends State<LoginForm> {
               children: [
                 InputField(
                   controller: _usernameController,
-                  labelText: "username",
+                  labelText: langue.username,
                   icon: Icons.person,
                 ),
                 const SizedBox(
@@ -96,7 +90,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
                 InputField(
                   controller: _passwordController,
-                  labelText: "password",
+                  labelText: langue.password,
                   icon: Icons.key,
                   obscureText: true,
                 ),
@@ -111,19 +105,13 @@ class _LoginFormState extends State<LoginForm> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: canPress ? loginFunction : null,
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(200, 33, 150, 243),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero)),
-                    child: isLoading
-                        ? const CircularProgressIndicator()
-                        : const Text(
-                            'Connect',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                  child: ActionButton(
+                    canPress: canPress && connection.isOnline,
+                    loginFunction: loginFunction,
+                    icon: const Text(
+                      'Connect',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               ],

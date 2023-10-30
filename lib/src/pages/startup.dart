@@ -14,7 +14,7 @@ class StartUpPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset('assets/tainopersonnel.png'),
+              Image.asset('assets/images/tainopersonnel.png'),
             ],
           ),
         ),

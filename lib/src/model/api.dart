@@ -1,4 +1,3 @@
-import 'package:tainopersonnel/src/model/employee.dart';
 import 'package:tainopersonnel/src/model/report.dart';
 import 'package:tainopersonnel/src/model/state.dart';
 import 'package:tainopersonnel/src/model/tenant.dart';
@@ -23,6 +22,7 @@ class API {
     );
 
     var body = conv.json.decode(response.body);
+
     throwPotentialError(body);
 
     var result = body['result'];
@@ -122,15 +122,19 @@ class API {
   }
 
   static Future<List<dynamic>> getDailyReports(
-    AppState state,
-    int empId, [
+    AppState state, {
     String? from,
-  ]) async {
+    int limit = 10,
+    int offset = 10,
+  }) async {
     Request req = Request(
-      method: HttpMethod.get,
-      baseEndpoint:
-          _APIEndpoint._getDailyReports.replaceAll('%s', empId.toString()),
-    );
+        method: HttpMethod.get,
+        baseEndpoint: _APIEndpoint._getDailyReports
+            .replaceAll('%s', state.empid.toString()),
+        queryParams: QueryParams({
+          "limit": limit.toString(),
+          "offset": offset.toString(),
+        }));
 
     if (from != null) {
       req.queryParams = QueryParams({'datefrom': from});
@@ -170,6 +174,21 @@ class API {
     }
     return res;
   }
+
+  static Future<List<dynamic>> getSubordonatesLastReportDate(
+      AppState state) async {
+    Request req = Request(
+        method: HttpMethod.get,
+        baseEndpoint: _APIEndpoint._getSubordonateLastReportDateEndpoint
+            .replaceFirst('%s', state.userId.toString()));
+
+    dynamic res = await sendRequest(req, state);
+
+    if (res == null) {
+      return [];
+    }
+    return res;
+  }
 }
 
 class _APIEndpoint {
@@ -182,7 +201,9 @@ class _APIEndpoint {
   static const _getDailyReports = '$_apiEndpoint/dailyreports/employees/%s';
   static const _getDailyReport = '$_apiEndpoint/dailyreports/%s';
   static const _getSubordonateEndpoint =
-      '$_apiEndpoint/employees/upperhierarchies/%s/subordonates/';
+      '$_apiEndpoint/employees/upperhierarchies/%s/subordonates';
+  static const _getSubordonateLastReportDateEndpoint =
+      '$_apiEndpoint/employees/upperhierarchies/%s/subordonates/lastreport';
 }
 
 class _APIError {

@@ -4,47 +4,43 @@ import 'package:flutter/material.dart';
 
 class MyTile extends StatelessWidget {
   void Function()? onTap;
-  Widget? icon;
-  String title, subTitle;
+  Widget? icon, subTitle;
+  Text title;
   TextStyle? textTheme;
+  double padding;
 
   MyTile({
     super.key,
     this.onTap,
-    this.title = '',
-    this.subTitle = '',
+    required this.title,
+    this.subTitle,
     this.icon,
     this.textTheme,
+    this.padding = 8,
   });
 
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
 
-    List<Text> children = [
-      Text(
-        title,
-        style: textTheme ?? theme.textTheme.bodyMedium,
-      ),
-    ];
-
-    if (subTitle.isNotEmpty) {
-      children.add(Text(
-        subTitle,
-        style: theme.textTheme.bodyMedium,
-      ));
-    }
-    return Container(
-      padding: const EdgeInsets.only(bottom: 5),
-      child: ListTile(
-        onTap: onTap,
-        selectedTileColor: theme.primaryColor,
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: children,
+    return SizedBox(
+      height: 60,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            icon!,
+            Expanded(
+              child: ListTile(
+                onTap: onTap,
+                selectedTileColor: theme.primaryColor,
+                title: title,
+                subtitle: subTitle,
+              ),
+            )
+          ],
         ),
-        leading: icon,
       ),
     );
   }
