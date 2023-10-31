@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart' as toast;
 import 'package:provider/provider.dart';
 import 'package:tainopersonnel/src/intl/intl.dart';
 import 'package:tainopersonnel/src/model/state.dart';
+import 'package:tainopersonnel/src/operation/operation.dart';
 import 'package:tainopersonnel/src/widget/actionbutton.dart';
 import 'package:tainopersonnel/src/widget/inputfield.dart';
 import 'package:tainopersonnel/src/operation/operation.dart' as operation;
@@ -66,6 +67,8 @@ class _AddReportState extends State<AddReport> {
     state = context.watch<AppState>();
     Language language = context.watch<AppLanguage>().language;
     ThemeData theme = Theme.of(context);
+    ConnectivityState connection = context.watch();
+
     contentController.text = state.report.content;
     try {
       day = DateTime.parse(state.report.day);
@@ -73,15 +76,15 @@ class _AddReportState extends State<AddReport> {
     } catch (_) {}
 
     void sendReport() async {
-      bool ok = false;
+      OperationOutcome result;
       String toastMsg = '';
 
       if (widget.action == ReportAction.create) {
-        ok = await operation.createDailyReport(state);
-        toastMsg = ok ? language.reportAdded : language.reportAdded;
+        result = await operation.createDailyReport(state);
+        toastMsg = result.success ? language.reportAdded : result.message;
       } else {
-        ok = await operation.updateDailyReport(state);
-        toastMsg = ok ? language.reportAdded : language.reportAdded;
+        result = await operation.updateDailyReport(state);
+        toastMsg = result.success ? language.reportAdded : result.message;
       }
 
       toast.Fluttertoast.showToast(
@@ -90,7 +93,9 @@ class _AddReportState extends State<AddReport> {
       );
 
       if (!mounted) return;
-      Navigator.of(context).pop(ok);
+      if (result.success) {
+        Navigator.of(context).pop(true);
+      }
     }
 
     return Padding(
@@ -118,10 +123,10 @@ class _AddReportState extends State<AddReport> {
             Expanded(
               child: InputField(
                 controller: contentController,
-                labelText: 'Report',
+                labelText: language.report,
                 content: state.report.content,
                 expands: true,
-                hint: 'Your text goes here',
+                hint: language.inputHint,
               ),
             ),
             Row(
@@ -129,7 +134,7 @@ class _AddReportState extends State<AddReport> {
               children: [
                 Expanded(
                   child: ActionButton(
-                    canPress: canSend,
+                    canPress: canSend && connection.isOnline,
                     loginFunction: sendReport,
                     icon: Icon(
                       Icons.send,

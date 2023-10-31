@@ -30,6 +30,7 @@ class _AppPage extends State<AppPage> {
       appBar: MyAppBar(theme: theme),
       drawer: const MyDrawer(),
       body: const Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ConnectionStateShower(),
         ],

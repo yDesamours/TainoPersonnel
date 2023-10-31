@@ -40,6 +40,8 @@ abstract class Language {
   String get logoutConfirm;
   String get yes;
   String get no;
+  String get loadFail;
+  String get inputHint;
 }
 
 class EnglishLanguage extends Language {
@@ -101,6 +103,12 @@ class EnglishLanguage extends Language {
 
   @override
   String get no => 'No';
+
+  @override
+  String get loadFail => 'Cannot load content';
+
+  @override
+  String get inputHint => 'Your text goes here';
 }
 
 class FrenchLanguage extends Language {
@@ -162,6 +170,12 @@ class FrenchLanguage extends Language {
 
   @override
   String get no => 'Non';
+
+  @override
+  String get loadFail => 'Erreur lors du chargement du contenu';
+
+  @override
+  String get inputHint => 'Taper votre text ici';
 }
 
 enum AppLanguages { french, english }

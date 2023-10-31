@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tainopersonnel/src/intl/intl.dart';
 import 'package:tainopersonnel/src/model/report.dart';
 import 'package:tainopersonnel/src/model/state.dart';
 import 'package:tainopersonnel/src/operation/operation.dart' as operation;
@@ -23,6 +24,7 @@ class _ReportTile extends State<ReportTile> {
   Widget build(BuildContext context) {
     AppState state = context.watch<AppState>();
     ThemeData theme = Theme.of(context);
+    Language language = context.watch<AppLanguage>().language;
 
     return Container(
       decoration: const BoxDecoration(
@@ -40,6 +42,10 @@ class _ReportTile extends State<ReportTile> {
         onExpansionChanged: (v) {
           if (widget.item.content.isEmpty && v) {
             operation.getDailyReport(widget.item.id, state).then((v) {
+              if (v == null) {
+                widget.item.content = language.loadFail;
+                return;
+              }
               setState(() {
                 widget.item.content = v.content;
               });

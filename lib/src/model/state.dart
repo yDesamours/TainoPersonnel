@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart'
+    as internet;
 
 import 'package:tainopersonnel/src/model/report.dart';
 import 'package:tainopersonnel/src/model/tenant.dart';
 import 'package:tainopersonnel/src/model/user.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class AppState extends ChangeNotifier {
   AppState(this.user, this.tenant);
@@ -41,10 +43,18 @@ class ConnectivityState extends ChangeNotifier {
   ConnectivityResult _connectivityResult = ConnectivityResult.none;
 
   ConnectivityState() {
-    Connectivity().onConnectivityChanged.listen((result) {
-      _connectivityResult = result;
-      notifyListeners();
-    });
+    Connectivity().onConnectivityChanged.listen(checkConnectivity);
+  }
+
+  void checkConnectivity(ConnectivityResult result) async {
+    if (result == ConnectivityResult.none) {
+      _connectivityResult = ConnectivityResult.none;
+    } else if (!await internet.InternetConnectionChecker().hasConnection) {
+      _connectivityResult = ConnectivityResult.none;
+    }
+
+    _connectivityResult = result;
+    notifyListeners();
   }
 
   ConnectivityResult get connectivityResult => _connectivityResult;

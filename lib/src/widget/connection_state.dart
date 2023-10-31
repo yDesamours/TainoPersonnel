@@ -9,24 +9,19 @@ class ConnectionStateShower extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Language language = context.watch<AppLanguage>().language;
+    ConnectivityState connection = context.watch<ConnectivityState>();
     ThemeData theme = Theme.of(context);
     TextTheme textTheme = theme.textTheme;
 
-    return Consumer<ConnectivityState>(
-      builder: (context, myState, child) {
-        if (!myState.isOnline) {
-          return Container(
+    return connection.isOnline != true
+        ? Container(
             color: theme.colorScheme.error,
             padding: const EdgeInsets.all(8.0),
             child: Text(
               language.offline,
               style: textTheme.bodySmall,
-            ),
-          );
-        } else {
-          return Container();
-        }
-      },
-    );
+              textAlign: TextAlign.center,
+            ))
+        : Container();
   }
 }

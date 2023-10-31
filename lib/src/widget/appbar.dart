@@ -66,7 +66,6 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: MyTile(
                 title: Text(
                   language.logout,
-                  style: TextStyle(color: theme.primaryColor),
                 ),
                 icon: const Icon(Icons.logout),
               ),

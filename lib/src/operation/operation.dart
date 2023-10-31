@@ -8,6 +8,13 @@ import 'package:tainopersonnel/src/model/tenant.dart';
 import 'package:tainopersonnel/src/model/user.dart';
 import 'package:tainopersonnel/src/data/database.dart';
 
+class OperationOutcome {
+  final bool success;
+  final String message;
+
+  const OperationOutcome({this.message = '', required this.success});
+}
+
 Future<void> login(String username, String password, AppState state) async {
   var (user, tenant) = await API.login(username, password);
 
@@ -46,15 +53,14 @@ Future<(User?, Tenant?)> launchApp() async {
   return (user, tenant);
 }
 
-Future<bool> createDailyReport(AppState state) async {
+Future<OperationOutcome> createDailyReport(AppState state) async {
   try {
     await API.sendDailyReport(state);
+    TainoPersonnelDatabase.insertReport(state.report);
+    return const OperationOutcome(success: true);
   } catch (e) {
-    rethrow;
+    return OperationOutcome(success: false, message: e.toString());
   }
-
-  TainoPersonnelDatabase.insertReport(state.report);
-  return true;
 }
 
 Future<List<Report>> getDailyReports(AppState state,
@@ -71,37 +77,42 @@ Future<List<Report>> getDailyReports(AppState state,
         .substring(0, 10);
   }
 
-  var newReports = await API.getDailyReports(
-    state,
-    from: date,
-    limit: limit,
-    offset: offset,
-  );
-  if (newReports.isNotEmpty) {
-    await TainoPersonnelDatabase.insertReports(newReports);
-  }
-  reports = await TainoPersonnelDatabase.getReports(state.empid,
-      limit: limit, offset: offset);
+  try {
+    var newReports = await API.getDailyReports(
+      state,
+      from: date,
+      limit: limit,
+      offset: offset,
+    );
+    if (newReports.isNotEmpty) {
+      await TainoPersonnelDatabase.insertReports(newReports);
+      reports = await TainoPersonnelDatabase.getReports(state.empid,
+          limit: limit, offset: offset);
+    }
+  } catch (_) {}
 
   return reports;
 }
 
-Future<Report> getDailyReport(int id, AppState state) async {
-  var report = await API.getDailyReport(state, id);
-  await TainoPersonnelDatabase.updateReport(report);
+Future<Report?> getDailyReport(int id, AppState state) async {
+  try {
+    var report = await API.getDailyReport(state, id);
+    await TainoPersonnelDatabase.updateReport(report);
 
-  return Future.value(report);
+    return Future.value(report);
+  } catch (_) {
+    return null;
+  }
 }
 
-Future<bool> updateDailyReport(AppState state) async {
+Future<OperationOutcome> updateDailyReport(AppState state) async {
   try {
     await API.sendDailyReport(state);
+    TainoPersonnelDatabase.insertReport(state.report);
+    return const OperationOutcome(success: true);
   } catch (e) {
-    rethrow;
+    return OperationOutcome(success: false, message: e.toString());
   }
-
-  TainoPersonnelDatabase.insertReport(state.report);
-  return true;
 }
 
 Future<List<Employee>> getSubordonates(AppState state) async {

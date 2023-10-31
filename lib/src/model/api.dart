@@ -2,8 +2,12 @@ import 'package:tainopersonnel/src/model/report.dart';
 import 'package:tainopersonnel/src/model/state.dart';
 import 'package:tainopersonnel/src/model/tenant.dart';
 import 'package:tainopersonnel/src/model/user.dart';
+
 import 'dart:convert' as conv;
+
 import 'package:http/http.dart' as http;
+import 'package:internet_connection_checker/internet_connection_checker.dart'
+    as internet;
 
 class API {
   static http.Client client = http.Client();
@@ -72,6 +76,10 @@ class API {
   }
 
   static Future<dynamic> sendRequest(Request req, AppState state) async {
+    if (!await internet.InternetConnectionChecker().hasConnection) {
+      return Future.value(null);
+    }
+
     var requestBody = conv.json.encode(req.body);
     http.Request request;
 
